@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { WagmiProvider } from "wagmi";
 import { wagmiConfig } from "./wagmi";
-import App from "./App.tsx";
+import App from "./pages/Home.tsx";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./index.css";
 import { RouterProvider, createHashRouter } from "react-router-dom";
@@ -23,7 +23,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
-          <RouterProvider router={router}/>
+          <RouterProvider router={router} />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
