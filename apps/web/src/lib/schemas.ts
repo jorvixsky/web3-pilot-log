@@ -5,7 +5,8 @@ export const licenseSchema = z.object({
     message: "Your name can't be empty",
   }),
   licenseNumber: z.string().min(1, {
-    message: "Your license number can't be empty",
+    message:
+      "Your license number can't be empty. Write Student Pilot if you are working towards a license",
   }),
   licenses: z
     .array(

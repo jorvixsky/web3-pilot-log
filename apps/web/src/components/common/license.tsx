@@ -2,7 +2,6 @@ import useEAS from "@/hooks/useEAS";
 import { licenseSchemaEncoder } from "@/lib/eas";
 import { useEthersSigner } from "@/lib/ethers";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { licenseSchema } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -11,7 +10,6 @@ import { Ratings } from "@/lib/enums";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,26 +24,58 @@ export default function NewLicense() {
   const eas = useEAS();
   const signer = useEthersSigner();
 
-  eas.connect(signer); // TODO: Properly handle undefined case
+  if (eas && signer) {
+    eas.connect(signer);
+  }
 
-  const licenseData = [
-    { name: "name", value: "John Doe", type: "string" },
-    { name: "licenseNumber", value: "ESP.FCL.0000000", type: "string" },
-    { name: "licenses", value: ["PPL", "CPL"], type: "string[]" },
-    {
-      name: "ratings",
-      value: ["Aircraft, Sailplane"],
-      type: "string[]",
-    },
-    {
-      name: "aircraftTypeRatings",
-      value: ["Boeing 737", "Airbus A320"],
-      type: "string[]",
-    },
-  ];
+  async function onSubmit(values: z.infer<typeof licenseSchema>) {
+    if (!eas) {
+      throw new Error("EAS not connected");
+    }
+    if (!values.licenses || !values.ratings) {
+      return;
+    }
+    if (!values.aircraftTypeRatings) {
+      values.aircraftTypeRatings = [];
+    }
+    let stringedLicenses: string[] = [];
+    values.licenses.forEach((license) => {
+      stringedLicenses.push(JSON.stringify(license));
+    });
+    const licenseData = [
+      { name: "name", value: values.name, type: "string" },
+      { name: "licenseNumber", value: values.licenseNumber, type: "string" },
+      { name: "licenses", value: stringedLicenses, type: "string[]" },
+      { name: "ratings", value: values.ratings, type: "string[]" },
+      {
+        name: "aircraftTypeRatings",
+        value: values.aircraftTypeRatings,
+        type: "string[]",
+      },
+    ];
 
-  function onSubmit(values: z.infer<typeof licenseSchema>) {
-    console.log(values);
+    const encodedLicenseData = licenseSchemaEncoder.encodeData(licenseData);
+    console.log(encodedLicenseData);
+
+    const offchain = await eas.getOffchain();
+
+    const offchainAttestation = await offchain.signOffchainAttestation(
+      {
+        expirationTime: 0n,
+        revocable: true,
+        time: BigInt(Math.round(Date.now() / 1000)),
+        schema:
+          "0x35a8a3ebd9ec1aed4494fa8905233b100e79ce22a238d0589fdab41763e4ea68",
+        data: encodedLicenseData,
+        refUID:
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+        recipient: "0x0000000000000000000000000000000000000000",
+      },
+      // @ts-expect-error: signer is not properly typed
+      signer
+    );
+
+    console.log(offchainAttestation);
   }
 
   const licenseForm = useForm<z.infer<typeof licenseSchema>>({
@@ -58,8 +88,6 @@ export default function NewLicense() {
       aircraftTypeRatings: [],
     },
   });
-
-  const encodedLicenseData = licenseSchemaEncoder.encodeData(licenseData);
 
   const [checkedLicenses, setCheckedLicenses] = useState<string[]>([]);
   const [checkedRatings, setCheckedRatings] = useState<string[]>([]);
@@ -168,6 +196,22 @@ export default function NewLicense() {
                 </FormItem>
               );
             })}
+            <FormField
+              control={licenseForm.control}
+              name="aircraftTypeRatings"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>License Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter aircraft type ratings"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button type="submit">Save license</Button>
           </form>
         </Form>
