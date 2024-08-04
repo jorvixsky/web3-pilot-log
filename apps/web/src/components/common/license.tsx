@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Licenses } from "@/lib/enums";
 import { Ratings } from "@/lib/enums";
+import lighthouse from "@lighthouse-web3/sdk";
 import {
   Form,
   FormControl,
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { useState } from "react";
 import { Checkbox } from "../ui/checkbox";
+import { stringifyAttestation } from "@/lib/utils";
 
 export default function NewLicense() {
   const eas = useEAS();
@@ -55,7 +57,6 @@ export default function NewLicense() {
     ];
 
     const encodedLicenseData = licenseSchemaEncoder.encodeData(licenseData);
-    console.log(encodedLicenseData);
 
     const offchain = await eas.getOffchain();
 
@@ -75,7 +76,10 @@ export default function NewLicense() {
       signer
     );
 
-    console.log(offchainAttestation);
+    const stringifiedOffchainAttestation =
+      stringifyAttestation(offchainAttestation);
+
+    console.log(stringifiedOffchainAttestation);
   }
 
   const licenseForm = useForm<z.infer<typeof licenseSchema>>({
