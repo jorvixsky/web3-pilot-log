@@ -44,7 +44,6 @@ export default function ConfigureLighthouse() {
 
   useEffect(() => {
     if (!signMessageData || !address) return;
-    console.log("Signature:", signMessageData);
     const getApiKey = async () => {
       try {
         const response = await lighthouse.getApiKey(
