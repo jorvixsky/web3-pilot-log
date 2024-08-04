@@ -7,13 +7,18 @@ export const licenseSchema = z.object({
   licenseNumber: z.string().min(1, {
     message: "Your license number can't be empty",
   }),
-  licenses: z.array(z.any()).min(1, {
-    message:
-      "You must have at least one license. If you are working towards a license, please select Student Pilot",
-  }),
-  ratings: z.array(z.string()).min(1, {
-    message:
-      "You must have at least one rating. If you are working towards a rating, please select the rating you are working towards",
-  }),
+  licenses: z
+    .array(
+      z.object({
+        name: z.string(),
+        issueDate: z.string().optional(),
+        licenseNumber: z.string().optional(),
+      })
+    )
+    .min(1, {
+      message:
+        "You must have at least one license. If you are working towards a license, please select Student Pilot",
+    }),
+  ratings: z.array(z.any()).optional(),
   aircraftTypeRatings: z.array(z.string()).optional(),
 });
