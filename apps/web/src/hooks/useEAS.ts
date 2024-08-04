@@ -1,8 +1,9 @@
 import { easBaseSepolia, easOptimismSepolia } from "@/lib/eas";
+import { EAS } from "@ethereum-attestation-service/eas-sdk";
 import { optimismSepolia, baseSepolia } from "viem/chains";
 import { useChainId } from "wagmi";
 
-export default function useEAS() {
+export default function useEAS(): EAS | undefined {
   const chainId = useChainId();
 
   switch (chainId) {
@@ -11,6 +12,6 @@ export default function useEAS() {
     case baseSepolia.id:
       return easBaseSepolia;
     default:
-      throw new Error(`Unsupported chainId: ${chainId}`);
+      return undefined;
   }
 }
