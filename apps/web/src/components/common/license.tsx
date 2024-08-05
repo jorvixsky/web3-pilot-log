@@ -79,7 +79,14 @@ export default function NewLicense() {
     const stringifiedOffchainAttestation =
       stringifyAttestation(offchainAttestation);
 
-    console.log(stringifiedOffchainAttestation);
+    const response = await lighthouse.textUploadEncrypted(
+      stringifiedOffchainAttestation,
+      sessionStorage.getItem("lighthouseApiKey") ?? "",
+      sessionStorage.getItem("lighthouseAccount") ?? "",
+      sessionStorage.getItem("jwt") ?? ""
+    );
+
+    console.log(response);
   }
 
   const licenseForm = useForm<z.infer<typeof licenseSchema>>({

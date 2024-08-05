@@ -9,6 +9,7 @@ import { RouterProvider, createHashRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import Dashboard from "./pages/Dashboard.tsx";
+import AuthenticateLighthouse from "./pages/AuthenticateLighthouse.tsx";
 
 const router = createHashRouter([
   {
@@ -18,6 +19,10 @@ const router = createHashRouter([
   {
     path: "/dashboard",
     element: <Dashboard />,
+  },
+  {
+    path: "/authenticate",
+    element: <AuthenticateLighthouse />,
   },
 ]);
 
