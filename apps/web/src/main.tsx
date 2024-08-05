@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import Dashboard from "./pages/Dashboard.tsx";
 import AuthenticateLighthouse from "./pages/AuthenticateLighthouse.tsx";
+import NewFlightPage from "./pages/NewFlight.tsx";
 
 const router = createHashRouter([
   {
@@ -23,6 +24,10 @@ const router = createHashRouter([
   {
     path: "/authenticate",
     element: <AuthenticateLighthouse />,
+  },
+  {
+    path: "/new-flight",
+    element: <NewFlightPage />,
   },
 ]);
 

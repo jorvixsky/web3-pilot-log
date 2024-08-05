@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { z } from "zod";
 
 export const licenseSchema = z.object({
@@ -22,4 +23,98 @@ export const licenseSchema = z.object({
     }),
   ratings: z.array(z.any()).optional(),
   aircraftTypeRatings: z.array(z.string()).optional(),
+});
+
+export const flightSchema = z.object({
+  date: z.date(),
+  departure: z.object({
+    place: z.string(),
+    time: z.string(),
+  }),
+  arrival: z.object({
+    place: z.string(),
+    time: z.string(),
+  }),
+  aircraft: z.object({
+    model: z.string(),
+    registration: z.string(),
+  }),
+  pics: z.array(z.string()),
+  isSinglePilotTime: z.boolean(),
+  singlePilotTime: z.object({
+    singleEngine: z.boolean(),
+    multiEngine: z.boolean(),
+  }),
+  multiPilotTime: z
+    .object({
+      hours: z.number().optional(),
+      minutes: z.number().optional(),
+    })
+    .optional(),
+  totalTimeOfFlight: z.object({
+    hours: z.number(),
+    minutes: z.number(),
+  }),
+  numberOfLandings: z.object({
+    day: z.number(),
+    night: z.number(),
+  }),
+  conditionsOfFlight: z
+    .object({
+      night: z.object({
+        hours: z.number(),
+        minutes: z.number(),
+      }),
+      ifr: z.object({
+        hood: z.object({
+          hours: z.number(),
+          minutes: z.number(),
+        }),
+        actual: z.object({
+          hours: z.number(),
+          minutes: z.number(),
+        }),
+      }),
+      flightRules: z.string().optional(),
+    })
+    .optional(),
+  pilotFunctionTime: z.object({
+    pic: z
+      .object({
+        hours: z.number(),
+        minutes: z.number(),
+      })
+      .optional(),
+    copilot: z
+      .object({
+        hours: z.number(),
+        minutes: z.number(),
+      })
+      .optional(),
+    dual: z
+      .object({
+        hours: z.number(),
+        minutes: z.number(),
+      })
+      .optional(),
+    fi: z
+      .object({
+        hours: z.number(),
+        minutes: z.number(),
+      })
+      .optional(),
+  }),
+  fstdSession: z
+    .object({
+      date: z.date().optional(),
+      type: z.string().optional(),
+      totalTime: z.object({
+        hours: z.number().optional(),
+        minutes: z.number().optional(),
+      }),
+    })
+    .optional(),
+  remarks: z.string().optional(),
+  selfSigned: z.boolean(),
+  signedBy: z.string().optional(), // To handle the case where the attestation should be signed by another pilot
 });
