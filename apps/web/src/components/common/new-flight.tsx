@@ -94,6 +94,12 @@ export default function NewFlight() {
           minutes: 0,
         },
       },
+      fstdSession: {
+        totalTime: {
+          hours: 0,
+          minutes: 0,
+        },
+      },
       selfSigned: true,
       signedBy: "",
     },
@@ -520,7 +526,7 @@ export default function NewFlight() {
             />
           </div>
           <div className="flex flex-col gap-4">
-            <Label className="font-bold">Conditions of Flight</Label>
+            <Label className="font-bold">IFR</Label>
             <div className="flex gap-4">
               <FormField
                 control={newFlightForm.control}
@@ -695,13 +701,14 @@ export default function NewFlight() {
               )}
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-4">
+            <Label className="font-bold">FSTD Session</Label>
             <FormField
               control={newFlightForm.control}
               name="fstdSession.date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>FSTD Session</FormLabel>
+                  <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -749,32 +756,34 @@ export default function NewFlight() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={newFlightForm.control}
-              name="fstdSession.totalTime.hours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>FSTD Session (Hours)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} min={0} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="fstdSession.totalTime.minutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>FSTD Session (Minutes)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} min={0} max={59} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex gap-4">
+              <FormField
+                control={newFlightForm.control}
+                name="fstdSession.totalTime.hours"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>FSTD Session (Hours)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} min={0} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={newFlightForm.control}
+                name="fstdSession.totalTime.minutes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>FSTD Session (Minutes)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} min={0} max={59} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
           <Button type="submit">Submit</Button>
         </form>
