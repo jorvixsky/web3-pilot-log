@@ -27,7 +27,7 @@ import { Label } from "../ui/label";
 import { useState } from "react";
 
 export default function NewFlight() {
-  const [selfSigned, setSelfSigned] = useState(false);
+  const [selfSigned, setSelfSigned] = useState(true);
   const [isSinglePilotTime, setIsSinglePilotTime] = useState(true);
 
   const newFlightForm = useForm<z.infer<typeof flightSchema>>({
@@ -409,7 +409,9 @@ export default function NewFlight() {
                           type="number"
                           {...field}
                           min={0}
-                          value={field.value ? field.value : 0}
+                          onChange={(e) => {
+                            field.onChange(e.target.valueAsNumber);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -423,7 +425,15 @@ export default function NewFlight() {
                     <FormItem>
                       <FormLabel>Multi Pilot Time (Minutes)</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} min={0} max={59} />
+                        <Input
+                          type="number"
+                          {...field}
+                          min={0}
+                          max={59}
+                          onChange={(e) => {
+                            field.onChange(e.target.valueAsNumber);
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -442,7 +452,14 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>Hours</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        min={0}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -455,7 +472,15 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>Minutes</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} max={59} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        max={59}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -473,7 +498,14 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>Day</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -486,7 +518,14 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>Night</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -505,7 +544,14 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>Night Time (Hours)</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -518,7 +564,15 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>Night Time (Minutes)</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} max={59} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      max={59}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -535,7 +589,14 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>IFR Hood Time (Hours)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -548,7 +609,15 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>IFR Hood Time (Minutes)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} max={59} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        max={59}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -561,7 +630,14 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>IFR Actual Time (Hours)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -574,7 +650,15 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>IFR Actual Time (Minutes)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} max={59} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        max={59}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -603,7 +687,14 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>PIC Hours</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -616,7 +707,15 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>PIC Minutes</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} max={59} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      max={59}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -629,7 +728,14 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>Copilot Hours</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -642,7 +748,15 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>Copilot Minutes</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} max={59} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      max={59}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -655,7 +769,14 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>Dual Hours</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -668,7 +789,15 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>Dual Minutes</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} max={59} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      max={59}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -681,7 +810,14 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>FI Hours</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -694,7 +830,15 @@ export default function NewFlight() {
                 <FormItem>
                   <FormLabel>FI Minutes</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} min={0} max={59} />
+                    <Input
+                      type="number"
+                      {...field}
+                      min={0}
+                      max={59}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -764,7 +908,14 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>FSTD Session (Hours)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -777,7 +928,15 @@ export default function NewFlight() {
                   <FormItem>
                     <FormLabel>FSTD Session (Minutes)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} min={0} max={59} />
+                      <Input
+                        type="number"
+                        {...field}
+                        min={0}
+                        max={59}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
