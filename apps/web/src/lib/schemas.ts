@@ -27,18 +27,30 @@ export const licenseSchema = z.object({
 export const flightSchema = z.object({
   date: z.date(),
   departure: z.object({
-    place: z.string(),
-    time: z.string(),
+    place: z.string().min(1, {
+      message: "The departure place can't be empty",
+    }),
+    time: z.string().min(1, {
+      message: "The departure time can't be empty",
+    }),
   }),
   arrival: z.object({
-    place: z.string(),
-    time: z.string(),
+    place: z.string().min(1, {
+      message: "The arrival place can't be empty",
+    }),
+    time: z.string().min(1, {
+      message: "The arrival time can't be empty",
+    }),
   }),
   aircraft: z.object({
-    model: z.string(),
-    registration: z.string(),
+    model: z.string().min(1, {
+      message: "The aircraft model can't be empty",
+    }),
+    registration: z.string().min(1, {
+      message: "The aircraft registration can't be empty",
+    }),
   }),
-  pics: z.array(z.string()),
+  pics: z.string(),
   isSinglePilotTime: z.boolean(),
   singlePilotTime: z.object({
     singleEngine: z.boolean(),
