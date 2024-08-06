@@ -75,6 +75,7 @@ export default function NewFlight() {
             minutes: 0,
           },
         },
+        flightRules: "",
       },
       pilotFunctionTime: {
         pic: {
@@ -99,6 +100,8 @@ export default function NewFlight() {
           hours: 0,
           minutes: 0,
         },
+        date: new Date(),
+        type: "",
       },
       selfSigned: true,
       signedBy: "",
@@ -106,7 +109,7 @@ export default function NewFlight() {
   });
 
   function onSubmit(values: z.infer<typeof flightSchema>) {
-    console.log(values);
+    console.log(JSON.stringify(values));
   }
 
   return (

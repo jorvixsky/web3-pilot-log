@@ -56,12 +56,10 @@ export const flightSchema = z.object({
     singleEngine: z.boolean(),
     multiEngine: z.boolean(),
   }),
-  multiPilotTime: z
-    .object({
-      hours: z.number().optional(),
-      minutes: z.number().optional(),
-    })
-    .optional(),
+  multiPilotTime: z.object({
+    hours: z.number(),
+    minutes: z.number(),
+  }),
   totalTimeOfFlight: z.object({
     hours: z.number(),
     minutes: z.number(),
@@ -70,62 +68,50 @@ export const flightSchema = z.object({
     day: z.number(),
     night: z.number(),
   }),
-  conditionsOfFlight: z
-    .object({
-      night: z.object({
+  conditionsOfFlight: z.object({
+    night: z.object({
+      hours: z.number(),
+      minutes: z.number(),
+    }),
+    ifr: z.object({
+      hood: z.object({
         hours: z.number(),
         minutes: z.number(),
       }),
-      ifr: z.object({
-        hood: z.object({
-          hours: z.number(),
-          minutes: z.number(),
-        }),
-        actual: z.object({
-          hours: z.number(),
-          minutes: z.number(),
-        }),
+      actual: z.object({
+        hours: z.number(),
+        minutes: z.number(),
       }),
-      flightRules: z.string().optional(),
-    })
-    .optional(),
-  pilotFunctionTime: z.object({
-    pic: z
-      .object({
-        hours: z.number(),
-        minutes: z.number(),
-      })
-      .optional(),
-    copilot: z
-      .object({
-        hours: z.number(),
-        minutes: z.number(),
-      })
-      .optional(),
-    dual: z
-      .object({
-        hours: z.number(),
-        minutes: z.number(),
-      })
-      .optional(),
-    fi: z
-      .object({
-        hours: z.number(),
-        minutes: z.number(),
-      })
-      .optional(),
+    }),
+    flightRules: z.string(),
   }),
-  fstdSession: z
-    .object({
-      date: z.date().optional(),
-      type: z.string().optional(),
-      totalTime: z.object({
-        hours: z.number().optional(),
-        minutes: z.number().optional(),
-      }),
-    })
-    .optional(),
-  remarks: z.string().optional(),
+  pilotFunctionTime: z.object({
+    pic: z.object({
+      hours: z.number(),
+      minutes: z.number(),
+    }),
+    copilot: z.object({
+      hours: z.number(),
+      minutes: z.number(),
+    }),
+    dual: z.object({
+      hours: z.number(),
+      minutes: z.number(),
+    }),
+    fi: z.object({
+      hours: z.number(),
+      minutes: z.number(),
+    }),
+  }),
+  fstdSession: z.object({
+    date: z.date(),
+    type: z.string(),
+    totalTime: z.object({
+      hours: z.number(),
+      minutes: z.number(),
+    }),
+  }),
+  remarks: z.string(),
   selfSigned: z.boolean(),
-  signedBy: z.string().optional(), // To handle the case where the attestation should be signed by another pilot
+  signedBy: z.string(), // To handle the case where the attestation should be signed by another pilot
 });
