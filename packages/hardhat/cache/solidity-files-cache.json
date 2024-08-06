@@ -1,8 +1,8 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/jplanasbielsa/Documents/Development/crypto-template/packages/hardhat/contracts/Counter.sol": {
-      "lastModificationDate": 1721055091912,
+    "/home/pingu/source/hackatons/web3-pilot-log/packages/hardhat/contracts/Counter.sol": {
+      "lastModificationDate": 1722962135421,
       "contentHash": "f3391e807b39d5e8f5d09d737f301f7b",
       "sourceName": "contracts/Counter.sol",
       "solcConfig": {
@@ -35,6 +35,78 @@
       ],
       "artifacts": [
         "Counter"
+      ]
+    },
+    "/home/pingu/source/hackatons/web3-pilot-log/packages/hardhat/contracts/Licenses.sol": {
+      "lastModificationDate": 1722962135421,
+      "contentHash": "eb5691082219aa61ffa69792b42087ea",
+      "sourceName": "contracts/Licenses.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.26"
+      ],
+      "artifacts": [
+        "Licenses"
+      ]
+    },
+    "/home/pingu/source/hackatons/web3-pilot-log/packages/hardhat/contracts/PilotLog.sol": {
+      "lastModificationDate": 1722965591421,
+      "contentHash": "e7331138584f3069d53cebe9e0d8081e",
+      "sourceName": "contracts/PilotLog.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.26"
+      ],
+      "artifacts": [
+        "PilotLog"
       ]
     }
   }
