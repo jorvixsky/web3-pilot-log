@@ -158,19 +158,27 @@ export default function NewFlight() {
     );
 
     console.log(response);
+
+    const items = [
+      {
+        name: "flightData",
+        value: JSON.stringify(values),
+        type: "string",
+      },
+    ];
   }
 
   return (
     <Form {...newFlightForm}>
       <form
         onSubmit={newFlightForm.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 w-96"
+        className="grid grid-cols-4 gap-4 mx-auto max-w-lg border border-red-500"
       >
         <FormField
           control={newFlightForm.control}
           name="date"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
+            <FormItem className="col-span-2">
               <FormLabel className="font-bold">Date</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
