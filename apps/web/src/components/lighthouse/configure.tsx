@@ -73,7 +73,7 @@ export default function ConfigureLighthouse() {
         <>
           {message && (
             <Button onClick={handleSignMessage} disabled={status === "pending"}>
-              {status === "pending" ? "Signing..." : "Create API Key"}
+              {status === "pending" ? "Signing..." : "Login"}
             </Button>
           )}
           {error && <div>Error signing message: {error.message}</div>}
