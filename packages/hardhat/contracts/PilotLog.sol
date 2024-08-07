@@ -122,7 +122,7 @@ contract PilotLog {
     function revokeLogbookPermission(address revokedAddress) external {
         userPermission[revokedAddress].profileViewAllowedAddress[msg.sender] = false;
     }
-    function getLogbooks(address logbookOwner) external view  returns (UserLogbooksInfo memory){
+    function getLogbooks(address logbookOwner) external view onlyAllowedUsers(logbookOwner) returns (UserLogbooksInfo memory){
         return userLogbooksInfo[logbookOwner];
     }
     function getProfile(address logbookOwner) external view onlyAllowedUsers(logbookOwner) returns (User memory){
