@@ -79,11 +79,9 @@ export default function NewLicense() {
     const stringifiedOffchainAttestation =
       stringifyAttestation(offchainAttestation);
 
-    const response = await lighthouse.textUploadEncrypted(
+    const response = await lighthouse.uploadText(
       stringifiedOffchainAttestation,
-      sessionStorage.getItem("lighthouseApiKey") ?? "",
-      sessionStorage.getItem("lighthouseAccount") ?? "",
-      sessionStorage.getItem("jwt") ?? ""
+      sessionStorage.getItem("lighthouseApiKey") ?? ""
     );
 
     console.log(response);

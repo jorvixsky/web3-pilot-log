@@ -13,7 +13,7 @@ import { flightSchema } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { cn } from "@/lib/utils";
+import { cn, stringifyAttestation } from "@/lib/utils";
 import {
   Popover,
   PopoverTrigger,
@@ -25,8 +25,19 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { useState } from "react";
+import lighthouse from "@lighthouse-web3/sdk";
+import { flightsSchemaEncoder } from "@/lib/eas";
+import useEAS from "@/hooks/useEAS";
+import { useEthersSigner } from "@/lib/ethers";
 
 export default function NewFlight() {
+  const eas = useEAS();
+  const signer = useEthersSigner();
+
+  if (eas && signer) {
+    eas.connect(signer);
+  }
+
   const [selfSigned, setSelfSigned] = useState(true);
   const [isSinglePilotTime, setIsSinglePilotTime] = useState(true);
 
@@ -108,8 +119,45 @@ export default function NewFlight() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof flightSchema>) {
-    console.log(JSON.stringify(values));
+  async function onSubmit(values: z.infer<typeof flightSchema>) {
+    if (!eas) {
+      throw new Error("EAS not connected");
+    }
+
+    const newFlightData = [
+      { name: "flightData", value: JSON.stringify(values), type: "string" },
+      { name: "signer", value: values.signedBy, type: "address" },
+    ];
+
+    const encodedFlightData = flightsSchemaEncoder.encodeData(newFlightData);
+
+    const offchain = await eas.getOffchain();
+
+    const offChainAttestation = await offchain.signOffchainAttestation(
+      {
+        expirationTime: 0n,
+        revocable: false,
+        time: BigInt(Math.round(Date.now() / 1000)),
+        schema:
+          "0x729792a64d6486fa09c88d0cad3b76395f60ba1f8c1a634d4ed286805e0089ac",
+        data: encodedFlightData,
+        refUID:
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+        recipient: "0x0000000000000000000000000000000000000000",
+      },
+      // @ts-expect-error: signer is not properly typed
+      signer
+    );
+
+    const stringifiedOffChainAttestation =
+      stringifyAttestation(offChainAttestation);
+
+    const response = await lighthouse.uploadText(
+      stringifiedOffChainAttestation,
+      sessionStorage.getItem("lighthouseApiKey") ?? ""
+    );
+
+    console.log(response);
   }
 
   return (
