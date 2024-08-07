@@ -124,7 +124,9 @@ describe("Pilot Log", function() {
         await contracts[3].write.registerProfile(['myIpfsCid', 1]);
         
         // this should be ok and it's not
-        await expect((await contracts[0].read.getSenderAddress())).to.equals(addresses[0]);
+        await expect((await contracts[0].read.getSenderAddress({
+            account: accounts[0].account
+        })).toLocaleLowerCase()).to.equals(addresses[0].toLocaleLowerCase());
 
         // await expect((await contracts[0].read.getLogbooks([addresses[0]])).closedBooksCount).to.equals(0);
         // await expect(contracts[1].read.getLogbooks([addresses[0]])).to.be.rejectedWith(
