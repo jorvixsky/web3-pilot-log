@@ -23,6 +23,7 @@ import { Checkbox } from "../ui/checkbox";
 import { stringifyAttestation } from "@/lib/utils";
 
 export default function NewLicense() {
+  const [isLoading, setIsLoading] = useState(false);
   const eas = useEAS();
   const signer = useEthersSigner();
 
@@ -31,6 +32,7 @@ export default function NewLicense() {
   }
 
   async function onSubmit(values: z.infer<typeof licenseSchema>) {
+    setIsLoading(true);
     if (!eas) {
       throw new Error("EAS not connected");
     }
@@ -81,10 +83,17 @@ export default function NewLicense() {
 
     const response = await lighthouse.uploadText(
       stringifiedOffchainAttestation,
-      sessionStorage.getItem("lighthouseApiKey") ?? ""
+      sessionStorage.getItem("lighthouseApiKey") ?? "" // TODO: add file name?
     );
 
-    console.log(response);
+    const licenseIPFS = response.data.Hash;
+
+    localStorage.setItem("licenseIPFS", licenseIPFS); // TODO: move to contract
+
+    console.log(licenseIPFS);
+    setIsLoading(false);
+
+    window.location.href = "/dashboard";
   }
 
   const licenseForm = useForm<z.infer<typeof licenseSchema>>({
@@ -102,13 +111,16 @@ export default function NewLicense() {
   const [checkedRatings, setCheckedRatings] = useState<string[]>([]);
 
   return (
-    <div>
-      <h1>License</h1>
+    <div className="max-w-lg w-full">
+      <h2 className="text-2xl font-bold">License configuration</h2>
+      <p className="text-sm text-gray-500">
+        Please, fill in the following fields to configure your license.
+      </p>
       <div>
         <Form {...licenseForm}>
           <form
             onSubmit={licenseForm.handleSubmit(onSubmit)}
-            className="flex flex-col gap-3 w-96"
+            className="flex flex-col gap-3"
           >
             <FormField
               control={licenseForm.control}
@@ -136,81 +148,86 @@ export default function NewLicense() {
                 </FormItem>
               )}
             />
-            <FormLabel>Licenses</FormLabel>
-            {Object.values(Licenses).map((license) => {
-              return (
-                <FormItem key={license}>
-                  <FormControl>
-                    <div className="flex flex-col">
+            <FormLabel className="text-lg font-bold">Licenses</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.values(Licenses).map((license) => {
+                return (
+                  <FormItem key={license}>
+                    <FormControl>
+                      <div className="flex flex-col">
+                        <div className="flex items-center">
+                          <Checkbox
+                            checked={checkedLicenses.includes(license)}
+                            onCheckedChange={() => {
+                              const newCheckedLicenses =
+                                checkedLicenses.includes(license)
+                                  ? checkedLicenses.filter((l) => l !== license)
+                                  : [...checkedLicenses, license];
+                              setCheckedLicenses(newCheckedLicenses);
+                              licenseForm.setValue(
+                                "licenses",
+                                newCheckedLicenses.map((l) => ({
+                                  name: l,
+                                  issueDate: "",
+                                  licenseNumber: "",
+                                }))
+                              );
+                            }}
+                          />
+                          <FormLabel className="pl-1">{license}</FormLabel>
+                        </div>
+                        {checkedLicenses.includes(license) && (
+                          <div className="mt-2">
+                            <div className="flex gap-2">
+                              <FormControl>
+                                <Input placeholder="Issue Date" />
+                              </FormControl>
+                              <FormControl>
+                                <Input placeholder="License Number" />
+                              </FormControl>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                );
+              })}
+            </div>
+            <FormLabel className="text-lg font-bold">Ratings</FormLabel>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.values(Ratings).map((rating) => {
+                return (
+                  <FormItem key={rating}>
+                    <FormControl>
                       <div className="flex items-center">
                         <Checkbox
-                          checked={checkedLicenses.includes(license)}
+                          checked={checkedRatings.includes(rating)}
                           onCheckedChange={() => {
-                            const newCheckedLicenses = checkedLicenses.includes(
-                              license
-                            )
-                              ? checkedLicenses.filter((l) => l !== license)
-                              : [...checkedLicenses, license];
-                            setCheckedLicenses(newCheckedLicenses);
-                            licenseForm.setValue(
-                              "licenses",
-                              newCheckedLicenses.map((l) => ({
-                                name: l,
-                                issueDate: "",
-                                licenseNumber: "",
-                              }))
-                            );
+                            const currentRatings =
+                              licenseForm.getValues("ratings") ?? [];
+                            const newRatings = currentRatings.includes(rating)
+                              ? currentRatings.filter((r) => r !== rating)
+                              : [...currentRatings, rating];
+                            setCheckedRatings(newRatings);
+                            licenseForm.setValue("ratings", newRatings);
                           }}
                         />
-                        <FormLabel>{license}</FormLabel>
+                        <FormLabel className="pl-1">{rating}</FormLabel>
                       </div>
-                      {checkedLicenses.includes(license) && (
-                        <div className="mt-2">
-                          <div className="flex gap-2">
-                            <FormControl>
-                              <Input placeholder="Issue Date" />
-                            </FormControl>
-                            <FormControl>
-                              <Input placeholder="License Number" />
-                            </FormControl>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </FormControl>
-                </FormItem>
-              );
-            })}
-            <FormLabel>Ratings</FormLabel>
-            {Object.values(Ratings).map((rating) => {
-              return (
-                <FormItem key={rating}>
-                  <FormControl>
-                    <div className="flex items-center">
-                      <Checkbox
-                        checked={checkedRatings.includes(rating)}
-                        onCheckedChange={() => {
-                          const currentRatings =
-                            licenseForm.getValues("ratings") ?? [];
-                          const newRatings = currentRatings.includes(rating)
-                            ? currentRatings.filter((r) => r !== rating)
-                            : [...currentRatings, rating];
-                          setCheckedRatings(newRatings);
-                          licenseForm.setValue("ratings", newRatings);
-                        }}
-                      />
-                      <FormLabel>{rating}</FormLabel>
-                    </div>
-                  </FormControl>
-                </FormItem>
-              );
-            })}
+                    </FormControl>
+                  </FormItem>
+                );
+              })}
+            </div>
             <FormField
               control={licenseForm.control}
               name="aircraftTypeRatings"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>License Number</FormLabel>
+                  <FormLabel className="text-lg font-bold">
+                    Aircraft type ratings
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter aircraft type ratings"
@@ -221,7 +238,9 @@ export default function NewLicense() {
                 </FormItem>
               )}
             />
-            <Button type="submit">Save license</Button>
+            <Button type="submit" disabled={isLoading}>
+              Save license
+            </Button>
           </form>
         </Form>
       </div>
