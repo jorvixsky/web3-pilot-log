@@ -4,6 +4,10 @@ export const licenseSchemaEncoder = new SchemaEncoder(
   "string name,string licenseNumber,string[] licenses,string[] ratings,string[] aircraftTypeRatings"
 );
 
+export const flightsSchemaEncoder = new SchemaEncoder(
+  "string flightData,address signer"
+);
+
 export const easBaseSepolia = new EAS(
   "0x4200000000000000000000000000000000000021"
 );
