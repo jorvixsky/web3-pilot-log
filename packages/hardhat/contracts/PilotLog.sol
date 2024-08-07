@@ -11,10 +11,32 @@ contract PilotLog {
         string profileCid;
         UserType userType;
     }
-    mapping(address => User) public userProfiles;
+    struct UserPermissions {
+        mapping(address => bool) profileViewAllowedAddress;
+    }
+    struct LogbookEntryValidation {
+        address logbookOwner;
+        string logbookId;
+        string entryCid;
+        address validator;
+        bool isValidated;
+    }
+    struct Logbook {
+        string id;
+        string lastEntryCid;
+        uint entryValidationCount;
+        LogbookEntryValidation[] entryValidation;
+    }
+    struct UserLogbooksInfo {
+        uint closedBooksCount;
+        Logbook[] closedBook;
+        Logbook openBook;
+    }
+    mapping(address => User) private userProfiles;
+    mapping(address => UserLogbooksInfo) private userLogbooksInfo;
+    mapping(address => UserPermissions) private userPermission;
 
 
-    // user management
     // errors
     function UserNotRegistered() internal pure returns (string memory) {
         return "User not registered";
@@ -24,6 +46,12 @@ contract PilotLog {
     }
     function UserNotPilot() internal pure returns (string memory) {
         return "User not pilot";
+    }
+    function UserNotPilotNorSigner() internal pure returns (string memory) {
+        return "User not pilot nor signer";
+    }
+    function InfoNotAllowed() internal pure returns (string memory){
+        return "User not allowed";
     }
     // modifiers
     modifier onlyRegisteredUser() {
@@ -38,24 +66,81 @@ contract PilotLog {
         }
         _;
     }
-    // functions
+    modifier onlyPilot() {
+        if (userProfiles[msg.sender].userType != UserType.PILOT) {
+            revert(UserNotPilot());
+        }
+        _;
+    }
+    modifier onlyPilotOrSigner() {
+        if (userProfiles[msg.sender].userType != UserType.PILOT &&
+            userProfiles[msg.sender].userType != UserType.SIGNER) {
+            revert(UserNotPilotNorSigner());
+        }
+        _;
+    }
+    modifier onlyAllowedUsers(address owner) {
+        if(msg.sender != owner &&
+            userPermission[owner].profileViewAllowedAddress[msg.sender] != true
+        ){
+            revert(InfoNotAllowed());
+        }
+        _;
+    }
+
+
+    // user management functions
     function registerProfile(string calldata _profileCid, UserType _userType) external onlyNewUser {
-        // check if user is already registered
-        userProfiles[msg.sender] = User({
-            profileCid: _profileCid,
-            userType: _userType
-        });
+        userProfiles[msg.sender].profileCid = _profileCid;
+        userProfiles[msg.sender].userType = _userType;
     }
 
     function getUserProfile(address _user) external view returns (User memory) {
         return userProfiles[_user];
     }
 
-    function promoteToSigner() external onlyRegisteredUser {
-        if (userProfiles[msg.sender].userType != UserType.PILOT) {
-            revert(UserNotPilot());
-        }
+    function promoteToSigner() external onlyRegisteredUser onlyPilot {
         userProfiles[msg.sender].userType = UserType.SIGNER;
+    }
+
+    // managing user logbooks and profiles
+    function closeCurrentLogbook() external {
+        userLogbooksInfo[msg.sender].closedBook[userLogbooksInfo[msg.sender].closedBooksCount] = userLogbooksInfo[msg.sender].openBook;
+        userLogbooksInfo[msg.sender].openBook.id = "";
+        userLogbooksInfo[msg.sender].openBook.lastEntryCid = "";
+        userLogbooksInfo[msg.sender].openBook.entryValidationCount = 0;
+    }
+    function addEntryToCurrentLogbook(string calldata currentLogbookNewCid) external {
+        if(stringsEquals(userLogbooksInfo[msg.sender].openBook.id,"")){
+            userLogbooksInfo[msg.sender].openBook.id = currentLogbookNewCid;
+        }
+        userLogbooksInfo[msg.sender].openBook.lastEntryCid = currentLogbookNewCid;
+    }
+    function giveLogbookPermission(address newAllowedAddress) external {
+        userPermission[newAllowedAddress].profileViewAllowedAddress[msg.sender] = true;
+    }
+    function revokeLogbookPermission(address revokedAddress) external {
+        userPermission[revokedAddress].profileViewAllowedAddress[msg.sender] = false;
+    }
+    function getLogbooks(address logbookOwner) external view  returns (UserLogbooksInfo memory){
+        return userLogbooksInfo[logbookOwner];
+    }
+    function getProfile(address logbookOwner) external view onlyAllowedUsers(logbookOwner) returns (User memory){
+        return userProfiles[logbookOwner];
+    }
+
+    // TODO:
+    function addEntryWithValidator(string memory currentLogbookNewCid, address validator) external {
+
+    }
+    function validateEntry(address logbookOwner, string memory logbookId, string memory validationCid) external {
+        
+    }
+    function getEntriesToValidate() external view returns (LogbookEntryValidation[] memory){
+
+    }
+    function getValidatedEntries() external view returns (LogbookEntryValidation[] memory){
+
     }
 
     // utils
@@ -68,5 +153,10 @@ contract PilotLog {
             if (b1[i] != b2[i]) return false;
         }
         return true;
+    }
+
+    // helpers
+    function getSenderAddress() external view returns (address) {
+        return msg.sender;
     }
 }

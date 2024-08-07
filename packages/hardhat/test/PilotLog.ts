@@ -21,6 +21,14 @@ describe("Pilot Log", function() {
         };
     }
 
+    async function getAccountContract(address: `0x${string}`, account : any){
+        return await hre.viem.getContractAt(
+            "PilotLog",
+            address,
+            { client: {wallet: account} }
+        )
+    }
+
     it("Should deploy", async function() {
         const { pilotLog,
             owner,
@@ -42,11 +50,7 @@ describe("Pilot Log", function() {
         expect((await pilotLog.read.getUserProfile([accounts[2].account.address])).profileCid).to.equals('');
 
         // create a pilot only generates data for the pilot
-        const firstAccountContract = await hre.viem.getContractAt(
-            "PilotLog",
-            pilotLog.address,
-            { client: {wallet: accounts[0]} }
-        )
+        const firstAccountContract = await getAccountContract(pilotLog.address, accounts[0]);
         await firstAccountContract.write.registerProfile(['myIpfsCid', 0]);
         expect((await pilotLog.read.getUserProfile([accounts[0].account.address])).profileCid).to.equals('myIpfsCid');
         expect((await pilotLog.read.getUserProfile([accounts[0].account.address])).userType).to.equals(0);
@@ -59,11 +63,7 @@ describe("Pilot Log", function() {
         );
 
         // can create a signer
-        const secondAccountContract = await hre.viem.getContractAt(
-            "PilotLog",
-            pilotLog.address,
-            { client: {wallet: accounts[1]} }
-        )
+        const secondAccountContract = await await getAccountContract(pilotLog.address, accounts[1]);
         await secondAccountContract.write.registerProfile(['secondIpfsCid', 1]);
         expect((await pilotLog.read.getUserProfile([accounts[0].account.address])).profileCid).to.equals('myIpfsCid');
         expect((await pilotLog.read.getUserProfile([accounts[0].account.address])).userType).to.equals(0);
@@ -72,11 +72,7 @@ describe("Pilot Log", function() {
         expect((await pilotLog.read.getUserProfile([accounts[2].account.address])).profileCid).to.equals('');
 
         // can create an entity
-        const thirdAccountContract = await hre.viem.getContractAt(
-            "PilotLog",
-            pilotLog.address,
-            { client: {wallet: accounts[2]} }
-        )
+        const thirdAccountContract = await getAccountContract(pilotLog.address, accounts[2]);
         await thirdAccountContract.write.registerProfile(['thirdIpfsCid', 2]);
         expect((await pilotLog.read.getUserProfile([accounts[0].account.address])).profileCid).to.equals('myIpfsCid');
         expect((await pilotLog.read.getUserProfile([accounts[0].account.address])).userType).to.equals(0);
@@ -97,5 +93,45 @@ describe("Pilot Log", function() {
         await expect(thirdAccountContract.write.promoteToSigner()).to.be.rejectedWith(
             "User not pilot"
         );
+    })
+
+    
+
+    it("Should be able manage books and add entries", async function() {
+        const { pilotLog,
+            owner,
+            accounts,
+            publicClient
+        } = await loadFixture(deployPilotLog);
+        // create account contracts to call them from different addresses
+        const contracts = [
+            await getAccountContract(pilotLog.address, accounts[0]), // owner
+            await getAccountContract(pilotLog.address, accounts[1]), // with account & permissions
+            await getAccountContract(pilotLog.address, accounts[2]), // without account & with permissions
+            await getAccountContract(pilotLog.address, accounts[3]) // with account & without permissions
+        ];
+
+        const addresses = [
+            accounts[0].account.address,
+            accounts[1].account.address,
+            accounts[2].account.address,
+            accounts[3].account.address
+        ]
+        
+        // can get profile & logbook from themselves
+        await contracts[0].write.registerProfile(['myIpfsCid', 0]);
+        await contracts[1].write.registerProfile(['myIpfsCid', 0]);
+        await contracts[3].write.registerProfile(['myIpfsCid', 1]);
+        
+        // this should be ok and it's not
+        await expect((await contracts[0].read.getSenderAddress())).to.equals(addresses[0]);
+
+        // await expect((await contracts[0].read.getLogbooks([addresses[0]])).closedBooksCount).to.equals(0);
+        // await expect(contracts[1].read.getLogbooks([addresses[0]])).to.be.rejectedWith(
+        //     "User not allowed"
+        // );
+        // await contracts[0].write.giveLogbookPermission([addresses[1]]);
+        //await expect((await contracts[1].read.getLogbooks([addresses[0]])).closedBooksCount).to.equals(0);
+
     })
 })
