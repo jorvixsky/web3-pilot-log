@@ -32,9 +32,15 @@ contract PilotLog {
         Logbook[] closedBook;
         Logbook openBook;
     }
+    struct SignerValidations {
+        uint count;
+        LogbookEntryValidation[] validations;
+    }
     mapping(address => User) private userProfiles;
     mapping(address => UserLogbooksInfo) private userLogbooksInfo;
     mapping(address => UserPermissions) private userPermission;
+
+    mapping(address => SignerValidations) private signerValidations;
 
     // errors
     function UserNotRegistered() internal pure returns (string memory) {
@@ -46,11 +52,17 @@ contract PilotLog {
     function UserNotPilot() internal pure returns (string memory) {
         return "User not pilot";
     }
+    function UserNotSigner() internal pure returns (string memory) {
+        return "User not signer";
+    }
     function UserNotPilotNorSigner() internal pure returns (string memory) {
         return "User not pilot nor signer";
     }
     function InfoNotAllowed() internal pure returns (string memory){
         return "User not allowed";
+    }
+    function NotSignerForEntry() internal pure returns (string memory){
+        return "Is not signer for entry";
     }
     // modifiers
     modifier onlyRegisteredUser() {
@@ -68,6 +80,12 @@ contract PilotLog {
     modifier onlyPilot() {
         if (userProfiles[msg.sender].userType != UserType.PILOT) {
             revert(UserNotPilot());
+        }
+        _;
+    }
+    modifier onlySigner() {
+        if (userProfiles[msg.sender].userType != UserType.SIGNER) {
+            revert(UserNotSigner());
         }
         _;
     }
@@ -103,23 +121,24 @@ contract PilotLog {
     }
 
     // managing user logbooks and profiles
-    function closeCurrentLogbook() external {
+    function closeCurrentLogbook() external onlyPilotOrSigner() {
         userLogbooksInfo[msg.sender].closedBook.push(userLogbooksInfo[msg.sender].openBook);
         userLogbooksInfo[msg.sender].closedBooksCount = userLogbooksInfo[msg.sender].closedBooksCount + 1;
         userLogbooksInfo[msg.sender].openBook.id = "";
         userLogbooksInfo[msg.sender].openBook.lastEntryCid = "";
         userLogbooksInfo[msg.sender].openBook.entryValidationCount = 0;
+        delete userLogbooksInfo[msg.sender].openBook.entryValidation;
     }
-    function addEntryToCurrentLogbook(string calldata currentLogbookNewCid) external {
+    function addEntryToCurrentLogbook(string calldata currentLogbookNewCid) external onlyPilotOrSigner() {
         if(stringsEquals(userLogbooksInfo[msg.sender].openBook.id,"")){
             userLogbooksInfo[msg.sender].openBook.id = currentLogbookNewCid;
         }
         userLogbooksInfo[msg.sender].openBook.lastEntryCid = currentLogbookNewCid;
     }
-    function giveLogbookPermission(address newAllowedAddress) external {
+    function giveLogbookPermission(address newAllowedAddress) external onlyPilotOrSigner(){
         userPermission[msg.sender].profileViewAllowedAddress[newAllowedAddress] = true;
     }
-    function revokeLogbookPermission(address revokedAddress) external {
+    function revokeLogbookPermission(address revokedAddress) external onlyPilotOrSigner(){
         userPermission[msg.sender].profileViewAllowedAddress[revokedAddress] = false;
     }
     function getLogbooks(address logbookOwner) external view onlyAllowedUsers(logbookOwner) returns (UserLogbooksInfo memory){
@@ -130,17 +149,85 @@ contract PilotLog {
     }
 
     // TODO:
-    function addEntryWithValidator(string memory currentLogbookNewCid, address validator) external {
+    function addEntryWithValidator(string memory _currentLogbookNewCid, address _validator) external onlyPilotOrSigner(){
+        if(stringsEquals(userLogbooksInfo[msg.sender].openBook.id,"")){
+            userLogbooksInfo[msg.sender].openBook.id = _currentLogbookNewCid;
+        }
+        userLogbooksInfo[msg.sender].openBook.lastEntryCid = _currentLogbookNewCid;
 
+        LogbookEntryValidation memory ev = LogbookEntryValidation(
+            msg.sender,
+            userLogbooksInfo[msg.sender].openBook.id,
+            _currentLogbookNewCid,
+            _validator,
+            false
+        );
+        userLogbooksInfo[msg.sender].openBook.entryValidation.push(ev);
+        userLogbooksInfo[msg.sender].openBook.entryValidationCount++;
+        signerValidations[_validator].validations.push(ev);
+        signerValidations[_validator].count++;
     }
-    function validateEntry(address logbookOwner, string memory logbookId, string memory validationCid) external {
-        
+    function validateEntry(address _logbookOwner, string memory _logbookId, string memory _validationCid) external onlySigner(){
+        bool signed = signEntryValidationOnSignerData(_logbookOwner, _logbookId, _validationCid);
+        bool signed2 = signEntryValidationOnBook(_logbookOwner, _logbookId, _validationCid);
+        if (!signed || !signed2) {
+            revert(NotSignerForEntry());
+        }
     }
-    function getEntriesToValidate() external view returns (LogbookEntryValidation[] memory){
+    function getEntriesToValidate() external view onlySigner() returns (LogbookEntryValidation[] memory) {
+        uint i=0;
+        uint count  = 0;
+        for (i = 0; i != signerValidations[msg.sender].count; i++) {
+            LogbookEntryValidation storage ev = signerValidations[msg.sender].validations[i];
+            if(!ev.isValidated) {
+                count++;
+            }     
+        }
+        LogbookEntryValidation[] memory res = new LogbookEntryValidation[](count);
+        uint arrayI = 0;
+        for (i = 0; i != signerValidations[msg.sender].count; i++) {
+            LogbookEntryValidation storage ev = signerValidations[msg.sender].validations[i];
+            if(!ev.isValidated) {
+                LogbookEntryValidation memory lv = LogbookEntryValidation(
+                    ev.logbookOwner,
+                    ev.logbookId,
+                    ev.entryCid,
+                    ev.validator,
+                    ev.isValidated
+                );
+                res[arrayI] = lv;
+                arrayI++;
+            }     
+        }
 
+        return res;
     }
-    function getValidatedEntries() external view returns (LogbookEntryValidation[] memory){
-
+    function getValidatedEntries() external view onlySigner() returns (LogbookEntryValidation[] memory) {
+        uint i=0;
+        uint count  = 0;
+        for (i = 0; i != signerValidations[msg.sender].count; i++) {
+            LogbookEntryValidation storage ev = signerValidations[msg.sender].validations[i];
+            if(ev.isValidated) {
+                count++;
+            }     
+        }
+        LogbookEntryValidation[] memory res = new LogbookEntryValidation[](count);
+        uint arrayI = 0;
+        for (i = 0; i != signerValidations[msg.sender].count; i++) {
+            LogbookEntryValidation storage ev = signerValidations[msg.sender].validations[i];
+            if(ev.isValidated) {
+                LogbookEntryValidation memory lv = LogbookEntryValidation(
+                    ev.logbookOwner,
+                    ev.logbookId,
+                    ev.entryCid,
+                    ev.validator,
+                    ev.isValidated
+                );
+                res[arrayI] = lv;
+                arrayI++;
+            }     
+        }
+        return res;
     }
 
     // utils
@@ -153,6 +240,57 @@ contract PilotLog {
             if (b1[i] != b2[i]) return false;
         }
         return true;
+    }
+
+    function signEntryValidationOnSignerData(address _logbookOwner, string memory _logbookId, string memory _validationCid) private returns (bool){
+        uint i=0;
+        for (i = 0; i < signerValidations[msg.sender].count; i++) {
+            LogbookEntryValidation storage ev = signerValidations[msg.sender].validations[i];
+            if(ev.logbookOwner == _logbookOwner && stringsEquals(ev.logbookId, _logbookId) && stringsEquals(_validationCid, ev.entryCid)) {
+                ev.isValidated = true;
+                return true;
+            }     
+        }
+        return false;
+    }
+    function signEntryValidationOnBook(address _logbookOwner, string memory _logbookId, string memory _validationCid) private returns (bool){
+        Logbook storage book;
+        if(stringsEquals(userLogbooksInfo[_logbookOwner].openBook.id, _logbookId)){
+            book = userLogbooksInfo[_logbookOwner].openBook;
+            uint i=0;
+            for (i = 0; i != book.entryValidationCount; i++) {
+                LogbookEntryValidation storage ev = book.entryValidation[i];
+                if(ev.logbookOwner == _logbookOwner && stringsEquals(ev.logbookId, _logbookId) && stringsEquals(_validationCid, ev.entryCid)) {
+                    if(msg.sender == ev.validator){
+                        ev.isValidated = true;
+                        return true;
+                    }
+                    return false;
+                }     
+            }
+            return false;
+        }
+        else {
+            uint i=0;
+            for (i = 0; i != userLogbooksInfo[_logbookOwner].closedBooksCount; i++) {
+                if(stringsEquals(userLogbooksInfo[_logbookOwner].closedBook[i].id, _logbookId)){
+                    book = userLogbooksInfo[_logbookOwner].closedBook[i];
+                    uint j=0;
+                    for (j = 0; j != book.entryValidationCount; j++) {
+                        LogbookEntryValidation storage ev = book.entryValidation[j];
+                        if(ev.logbookOwner == _logbookOwner && stringsEquals(ev.logbookId, _logbookId) && stringsEquals(_validationCid, ev.entryCid)) {
+                            if(msg.sender == ev.validator){
+                                ev.isValidated = true;
+                                return true;
+                            }
+                            return false;
+                        }     
+                    }
+                    return false;
+                }  
+            }
+        }
+        return false;
     }
 
     // helpers
