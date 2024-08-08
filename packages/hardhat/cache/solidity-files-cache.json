@@ -74,8 +74,8 @@
       ]
     },
     "/home/pingu/source/hackatons/web3-pilot-log/packages/hardhat/contracts/PilotLog.sol": {
-      "lastModificationDate": 1723054453472,
-      "contentHash": "3e0df13007f11763ace993872fb41606",
+      "lastModificationDate": 1723152850830,
+      "contentHash": "d83f51e1db2833526e186d2c73ac310c",
       "sourceName": "contracts/PilotLog.sol",
       "solcConfig": {
         "version": "0.8.26",

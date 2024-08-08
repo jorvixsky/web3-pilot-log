@@ -36,7 +36,6 @@ contract PilotLog {
     mapping(address => UserLogbooksInfo) private userLogbooksInfo;
     mapping(address => UserPermissions) private userPermission;
 
-
     // errors
     function UserNotRegistered() internal pure returns (string memory) {
         return "User not registered";
@@ -105,7 +104,8 @@ contract PilotLog {
 
     // managing user logbooks and profiles
     function closeCurrentLogbook() external {
-        userLogbooksInfo[msg.sender].closedBook[userLogbooksInfo[msg.sender].closedBooksCount] = userLogbooksInfo[msg.sender].openBook;
+        userLogbooksInfo[msg.sender].closedBook.push(userLogbooksInfo[msg.sender].openBook);
+        userLogbooksInfo[msg.sender].closedBooksCount = userLogbooksInfo[msg.sender].closedBooksCount + 1;
         userLogbooksInfo[msg.sender].openBook.id = "";
         userLogbooksInfo[msg.sender].openBook.lastEntryCid = "";
         userLogbooksInfo[msg.sender].openBook.entryValidationCount = 0;
@@ -117,10 +117,10 @@ contract PilotLog {
         userLogbooksInfo[msg.sender].openBook.lastEntryCid = currentLogbookNewCid;
     }
     function giveLogbookPermission(address newAllowedAddress) external {
-        userPermission[newAllowedAddress].profileViewAllowedAddress[msg.sender] = true;
+        userPermission[msg.sender].profileViewAllowedAddress[newAllowedAddress] = true;
     }
     function revokeLogbookPermission(address revokedAddress) external {
-        userPermission[revokedAddress].profileViewAllowedAddress[msg.sender] = false;
+        userPermission[msg.sender].profileViewAllowedAddress[revokedAddress] = false;
     }
     function getLogbooks(address logbookOwner) external view onlyAllowedUsers(logbookOwner) returns (UserLogbooksInfo memory){
         return userLogbooksInfo[logbookOwner];
