@@ -414,4 +414,100 @@ describe("Pilot Log", function() {
             "User not signer"
         );
     });
+
+    it("entities should be able to get info from the pilots who granted them permissions", async function() {
+        const { pilotLog,
+            owner,
+            accounts,
+            publicClient
+        } = await loadFixture(deployPilotLog);
+        // create account contracts to call them from different addresses
+        const contracts = [
+            await getAccountContract(pilotLog.address, accounts[0]), // pilot
+            await getAccountContract(pilotLog.address, accounts[1]), // signer
+            await getAccountContract(pilotLog.address, accounts[2]), // entity
+        ];
+        const addresses = [
+            accounts[0].account.address,
+            accounts[1].account.address,
+            accounts[2].account.address
+        ]
+        
+        await contracts[0].write.registerProfile(['myIpfsCidPilot', 0]);
+        await contracts[1].write.registerProfile(['myIpfsCidSigner', 1]);
+        await contracts[2].write.registerProfile(['myIpfsCidEntity', 2]);
+
+        // give permissions
+        await contracts[0].write.giveLogbookPermission([addresses[1]]);
+        await contracts[0].write.giveLogbookPermission([addresses[2]]);
+        await contracts[1].write.giveLogbookPermission([addresses[0]]);
+        await contracts[1].write.giveLogbookPermission([addresses[2]]);
+
+        await expect(contracts[2].write.giveLogbookPermission([addresses[1]])).to.be.rejectedWith(
+            "User not pilot nor signer"
+        );
+
+        // pilots and signers cannot know who granted them permission
+        await expect(contracts[0].read.getAllowedPilotProfiles({
+            account: accounts[0].account
+        })).to.be.rejectedWith(
+            "User not entity"
+        );
+        await expect(contracts[1].read.getAllowedPilotProfiles({
+            account: accounts[1].account
+        })).to.be.rejectedWith(
+            "User not entity"
+        );
+
+        var contractCall = await contracts[2].read.getAllowedPilotProfiles({
+            account: accounts[2].account
+        });
+        expect(contractCall.length).to.equal(2);
+        expect(contractCall[0].profileCid).to.equal('myIpfsCidPilot');
+        expect(contractCall[0].userAddr.toLocaleLowerCase()).to.equal(addresses[0].toLocaleLowerCase());
+        expect(contractCall[1].profileCid).to.equal('myIpfsCidSigner');
+        expect(contractCall[1].userAddr.toLocaleLowerCase()).to.equal(addresses[1].toLocaleLowerCase());
+    });
+    it("pilots should know who they grant access to", async function(){
+        const { pilotLog,
+            owner,
+            accounts,
+            publicClient
+        } = await loadFixture(deployPilotLog);
+        // create account contracts to call them from different addresses
+        const contracts = [
+            await getAccountContract(pilotLog.address, accounts[0]), // pilot
+            await getAccountContract(pilotLog.address, accounts[1]), // signer
+            await getAccountContract(pilotLog.address, accounts[2]), // entity
+        ];
+        const addresses = [
+            accounts[0].account.address,
+            accounts[1].account.address,
+            accounts[2].account.address
+        ]
+        
+        await contracts[0].write.registerProfile(['myIpfsCidPilot', 0]);
+        await contracts[1].write.registerProfile(['myIpfsCidSigner', 1]);
+        await contracts[2].write.registerProfile(['myIpfsCidEntity', 2]);
+
+        // give permissions
+        await contracts[0].write.giveLogbookPermission([addresses[1]]);
+        await contracts[0].write.giveLogbookPermission([addresses[2]]);
+        await contracts[1].write.giveLogbookPermission([addresses[0]]);
+        await contracts[1].write.giveLogbookPermission([addresses[2]]);
+
+        await expect(contracts[2].write.giveLogbookPermission([addresses[1]])).to.be.rejectedWith(
+            "User not pilot nor signer"
+        );
+
+        var contractCall = await contracts[0].read.getGrantedPermissionsToOthers({
+            account: accounts[0].account
+        });
+        expect(contractCall.length).to.equal(2);
+        expect(contractCall[0].profileCid).to.equal('myIpfsCidSigner');
+        expect(contractCall[0].userAddr.toLocaleLowerCase()).to.equal(addresses[1].toLocaleLowerCase());
+        expect(contractCall[1].profileCid).to.equal('myIpfsCidEntity');
+        expect(contractCall[1].userAddr.toLocaleLowerCase()).to.equal(addresses[2].toLocaleLowerCase());
+    })
+
 })
