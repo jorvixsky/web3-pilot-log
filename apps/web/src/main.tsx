@@ -11,7 +11,6 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import Dashboard from "./pages/Dashboard.tsx";
 import AuthenticateLighthouse from "./pages/AuthenticateLighthouse.tsx";
 import NewFlightPage from "./pages/NewFlight.tsx";
-import FlightsPage from "./pages/Flights.tsx";
 
 const router = createHashRouter([
   {
@@ -29,10 +28,6 @@ const router = createHashRouter([
   {
     path: "/new-flight",
     element: <NewFlightPage />,
-  },
-  {
-    path: "/flights",
-    element: <FlightsPage />,
   },
 ]);
 

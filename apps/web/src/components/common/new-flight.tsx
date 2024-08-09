@@ -131,7 +131,6 @@ export default function NewFlight() {
       ),
       sessionStorage.getItem("lighthouseApiKey") ?? "" // TODO: add file name?
     );
-
     const flightIPFS = response.data.Hash;
 
     await writeContractAsync({

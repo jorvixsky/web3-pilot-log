@@ -13,6 +13,8 @@ import {
 } from "@ethereum-attestation-service/eas-sdk";
 import { flightsSchema } from "@/lib/eas";
 import { useEthersProvider } from "@/lib/ethers";
+import Flights from "@/components/common/flights";
+import FlightsTable from "@/components/common/flights";
 
 interface getUserProfileResponse {
   profileCid: string;
@@ -52,11 +54,15 @@ export default function Dashboard() {
   console.log(currentLogbook);
 
   useEffect(() => {
-    if (currentLogbook.length > 0) {
-      currentLogbook.map((entry) => {
-        console.log(entry);
-      });
+    if (!currentLogbook.length) return;
+    async function getSchema() {
+      const schema = await schemaRegistry.getSchema({ uid: flightsSchema });
+      const schemaEncoder = new SchemaEncoder(schema.schema);
+      const data = schemaEncoder.decodeData(currentLogbook.message.data);
+      console.log(JSON.parse(data[0].value.value));
+      setDecodedLogbook(JSON.parse(data[0].value.value));
     }
+    getSchema();
   }, [currentLogbook]);
 
   // TODO: Add error handling
@@ -103,11 +109,11 @@ export default function Dashboard() {
             <Link to="/new-flight">
               <Button>Create new flight</Button>
             </Link>
-            <Link to="/logbook">
-              <Button>Logbook</Button>
-            </Link>
           </div>
         )}
+        <div className="mx-auto">
+          <FlightsTable data={decodedLogbook} />
+        </div>
       </div>
     </div>
   );
