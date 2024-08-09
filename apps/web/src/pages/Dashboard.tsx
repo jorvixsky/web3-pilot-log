@@ -2,24 +2,37 @@ import Header from "@/components/common/header";
 import NewLicense from "@/components/common/license";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
+import { useReadContract } from "wagmi";
+import pilotLog from "../../contracts.json";
+
+interface getUserProfileResponse {
+  profileCid: string;
+  userType: number;
+}
 
 export default function Dashboard() {
   const [isLicenseConfigured, setIsLicenseConfigured] = useState(true);
 
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
 
-  // TODO: Add reading contract to load the license, if it does not exist, proceed to create it
+  // TODO: Add error handling
+
+  const result = useReadContract({
+    address: pilotLog[0].address as `0x${string}`,
+    abi: pilotLog[0].abi,
+    functionName: "getUserProfile",
+    args: [address],
+  }).data as getUserProfileResponse;
+
+  useEffect(() => {
+    setIsLicenseConfigured(result && result.profileCid ? true : false);
+  }, [result]);
 
   useEffect(() => {
     if (!isConnected) {
       window.location.href = "/";
     }
   }, [isConnected]);
-
-  useEffect(() => {
-    const licenseIPFS = localStorage.getItem("licenseIPFS");
-    licenseIPFS ? setIsLicenseConfigured(true) : setIsLicenseConfigured(false);
-  }, []);
 
   return (
     <div>
