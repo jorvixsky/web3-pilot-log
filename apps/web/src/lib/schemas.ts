@@ -50,15 +50,12 @@ export const flightSchema = z.object({
       message: "The aircraft registration can't be empty",
     }),
   }),
-  pics: z.string(),
-  isSinglePilotTime: z.boolean(),
+  pics: z.string().min(1, {
+    message: "The PICS can't be empty",
+  }),
   singlePilotTime: z.object({
     singleEngine: z.boolean(),
     multiEngine: z.boolean(),
-  }),
-  multiPilotTime: z.object({
-    hours: z.number(),
-    minutes: z.number(),
   }),
   totalTimeOfFlight: z.object({
     hours: z.number(),
@@ -67,49 +64,6 @@ export const flightSchema = z.object({
   numberOfLandings: z.object({
     day: z.number(),
     night: z.number(),
-  }),
-  conditionsOfFlight: z.object({
-    night: z.object({
-      hours: z.number(),
-      minutes: z.number(),
-    }),
-    ifr: z.object({
-      hood: z.object({
-        hours: z.number(),
-        minutes: z.number(),
-      }),
-      actual: z.object({
-        hours: z.number(),
-        minutes: z.number(),
-      }),
-    }),
-    flightRules: z.string(),
-  }),
-  pilotFunctionTime: z.object({
-    pic: z.object({
-      hours: z.number(),
-      minutes: z.number(),
-    }),
-    copilot: z.object({
-      hours: z.number(),
-      minutes: z.number(),
-    }),
-    dual: z.object({
-      hours: z.number(),
-      minutes: z.number(),
-    }),
-    fi: z.object({
-      hours: z.number(),
-      minutes: z.number(),
-    }),
-  }),
-  fstdSession: z.object({
-    date: z.date(),
-    type: z.string(),
-    totalTime: z.object({
-      hours: z.number(),
-      minutes: z.number(),
-    }),
   }),
   remarks: z.string(),
   selfSigned: z.boolean(),

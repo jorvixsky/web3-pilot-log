@@ -23,6 +23,7 @@ import { Checkbox } from "../ui/checkbox";
 import { stringifyAttestation } from "@/lib/utils";
 import { useWriteContract } from "wagmi";
 import pilotLog from "../../../contracts.json";
+import { useNavigate } from "react-router-dom";
 
 export default function NewLicense() {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +31,8 @@ export default function NewLicense() {
   const signer = useEthersSigner();
 
   const { writeContractAsync } = useWriteContract();
+
+  const navigate = useNavigate();
 
   if (eas && signer) {
     eas.connect(signer);
@@ -100,8 +103,7 @@ export default function NewLicense() {
     });
 
     setIsLoading(false);
-
-    window.location.href = "/";
+    navigate("/");
   }
 
   const licenseForm = useForm<z.infer<typeof licenseSchema>>({

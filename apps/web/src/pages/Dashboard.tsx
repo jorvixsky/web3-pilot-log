@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useReadContract } from "wagmi";
 import pilotLog from "../../contracts.json";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 interface getUserProfileResponse {
   profileCid: string;
@@ -40,6 +42,16 @@ export default function Dashboard() {
       <div className="flex flex-col gap-4 mx-auto justify-center items-center mt-8 mb-8">
         <h1 className="text-4xl font-bold">Dashboard</h1>
         {!isLicenseConfigured && <NewLicense />}
+        {isLicenseConfigured && (
+          <div className="flex flex-col gap-4 justify-center items-center ">
+            <Link to="/new-flight">
+              <Button>Create new flight</Button>
+            </Link>
+            <Link to="/logbook">
+              <Button>Logbook</Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

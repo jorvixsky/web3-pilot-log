@@ -23,25 +23,113 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import lighthouse from "@lighthouse-web3/sdk";
 import { flightsSchemaEncoder } from "@/lib/eas";
 import useEAS from "@/hooks/useEAS";
 import { useEthersSigner } from "@/lib/ethers";
+import { useAccount, useReadContract } from "wagmi";
+import pilotLog from "../../../contracts.json";
+import axios from "axios";
+import { useWriteContract } from "wagmi";
+import { useNavigate } from "react-router-dom";
 
 export default function NewFlight() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [selfSigned, setSelfSigned] = useState(true);
+  const [isSinglePilotTime, setIsSinglePilotTime] = useState(true);
+  const navigate = useNavigate();
+
+  const { writeContractAsync } = useWriteContract();
   const eas = useEAS();
   const signer = useEthersSigner();
+
+  const { address } = useAccount();
 
   if (eas && signer) {
     eas.connect(signer);
   }
 
-  const [selfSigned, setSelfSigned] = useState(true);
-  const [isSinglePilotTime, setIsSinglePilotTime] = useState(true);
+  const { data: logbookCid } = useReadContract({
+    address: pilotLog[0].address as `0x${string}`,
+    abi: pilotLog[0].abi,
+    functionName: "getLogbooks",
+    args: [address],
+  });
 
-  const newFlightForm = useForm<z.infer<typeof flightSchema>>({
+  useEffect(() => {
+    if (!logbookCid) return;
+    async function getLogbook() {
+      const response = await axios.get(
+        `https://gateway.lighthouse.storage/ipfs/${logbookCid}`
+      );
+      console.log(response.data);
+    }
+    getLogbook();
+  }, [logbookCid]);
+
+  async function onSubmit(values: z.infer<typeof flightSchema>) {
+    console.log(values);
+    setIsLoading(true);
+    if (!eas) {
+      throw new Error("EAS not connected");
+    }
+    if (selfSigned) {
+      values.signedBy = address as string;
+    }
+
+    // TODO: store flight in logbook if there is logbook
+    const flightData = [
+      { name: "flightData", value: JSON.stringify(values), type: "string" },
+      { name: "signer", value: values.signedBy, type: "address" },
+    ];
+
+    const encodedFlightData = flightsSchemaEncoder.encodeData(flightData);
+
+    const offchain = await eas.getOffchain();
+
+    const offchainAttestation = await offchain.signOffchainAttestation(
+      {
+        expirationTime: 0n,
+        revocable: false,
+        time: BigInt(Math.round(Date.now() / 1000)),
+        schema:
+          "0x35a8a3ebd9ec1aed4494fa8905233b100e79ce22a238d0589fdab41763e4ea68",
+        data: encodedFlightData,
+        refUID:
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+        recipient:
+          values.signedBy === address
+            ? "0x0000000000000000000000000000000000000000"
+            : values.signedBy,
+      },
+      // @ts-expect-error: signer is not properly typed
+      signer
+    );
+
+    const stringifiedOffchainAttestation =
+      stringifyAttestation(offchainAttestation);
+
+    const response = await lighthouse.uploadText(
+      stringifiedOffchainAttestation,
+      sessionStorage.getItem("lighthouseApiKey") ?? "" // TODO: add file name?
+    );
+
+    const flightIPFS = response.data.hash;
+
+    console.log(flightIPFS);
+
+    await writeContractAsync({
+      address: pilotLog[0].address as `0x${string}`,
+      abi: pilotLog[0].abi,
+      functionName: "addEntryToCurrentLogbook",
+      args: [flightIPFS],
+    });
+
+    navigate(`/dashboard?flightIPFS=${flightIPFS}`);
+  }
+
+  const flightForm = useForm<z.infer<typeof flightSchema>>({
     resolver: zodResolver(flightSchema),
     defaultValues: {
       date: new Date(),
@@ -58,7 +146,6 @@ export default function NewFlight() {
         registration: "",
       },
       pics: "",
-      isSinglePilotTime: true,
       singlePilotTime: {
         singleEngine: true,
         multiEngine: false,
@@ -71,115 +158,24 @@ export default function NewFlight() {
         day: 0,
         night: 0,
       },
-      conditionsOfFlight: {
-        night: {
-          hours: 0,
-          minutes: 0,
-        },
-        ifr: {
-          hood: {
-            hours: 0,
-            minutes: 0,
-          },
-          actual: {
-            hours: 0,
-            minutes: 0,
-          },
-        },
-        flightRules: "",
-      },
-      pilotFunctionTime: {
-        pic: {
-          hours: 0,
-          minutes: 0,
-        },
-        copilot: {
-          hours: 0,
-          minutes: 0,
-        },
-        dual: {
-          hours: 0,
-          minutes: 0,
-        },
-        fi: {
-          hours: 0,
-          minutes: 0,
-        },
-      },
-      fstdSession: {
-        totalTime: {
-          hours: 0,
-          minutes: 0,
-        },
-        date: new Date(),
-        type: "",
-      },
+      remarks: "",
       selfSigned: true,
       signedBy: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof flightSchema>) {
-    if (!eas) {
-      throw new Error("EAS not connected");
-    }
-
-    const newFlightData = [
-      { name: "flightData", value: JSON.stringify(values), type: "string" },
-      { name: "signer", value: values.signedBy, type: "address" },
-    ];
-
-    const encodedFlightData = flightsSchemaEncoder.encodeData(newFlightData);
-
-    const offchain = await eas.getOffchain();
-
-    const offChainAttestation = await offchain.signOffchainAttestation(
-      {
-        expirationTime: 0n,
-        revocable: false,
-        time: BigInt(Math.round(Date.now() / 1000)),
-        schema:
-          "0x729792a64d6486fa09c88d0cad3b76395f60ba1f8c1a634d4ed286805e0089ac",
-        data: encodedFlightData,
-        refUID:
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
-        recipient: "0x0000000000000000000000000000000000000000",
-      },
-      // @ts-expect-error: signer is not properly typed
-      signer
-    );
-
-    const stringifiedOffChainAttestation =
-      stringifyAttestation(offChainAttestation);
-
-    const response = await lighthouse.uploadText(
-      stringifiedOffChainAttestation,
-      sessionStorage.getItem("lighthouseApiKey") ?? ""
-    );
-
-    console.log(response);
-
-    const items = [
-      {
-        name: "flightData",
-        value: JSON.stringify(values),
-        type: "string",
-      },
-    ];
-  }
-
   return (
-    <Form {...newFlightForm}>
+    <Form {...flightForm}>
       <form
-        onSubmit={newFlightForm.handleSubmit(onSubmit)}
-        className="grid grid-cols-4 gap-4 mx-auto max-w-lg border border-red-500"
+        onSubmit={flightForm.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4 mx-auto"
       >
         <FormField
-          control={newFlightForm.control}
+          control={flightForm.control}
           name="date"
           render={({ field }) => (
-            <FormItem className="col-span-2">
-              <FormLabel className="font-bold">Date</FormLabel>
+            <FormItem className="flex flex-col">
+              <FormLabel className="text-xl font-bold">Date</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -212,150 +208,140 @@ export default function NewFlight() {
             </FormItem>
           )}
         />
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">Departure</Label>
-          <div className="flex gap-4">
-            <FormField
-              control={newFlightForm.control}
-              name="departure.place"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Place</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="LELL" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="departure.time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Time</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="12:00" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">Arrival</Label>
-          <div className="flex gap-4">
-            <FormField
-              control={newFlightForm.control}
-              name="arrival.place"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Place</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="LELL" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="arrival.time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Time</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="12:00" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">Aircraft</Label>
-          <div className="flex gap-4">
-            <FormField
-              control={newFlightForm.control}
-              name="aircraft.model"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Make, model, variant</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="C150" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="aircraft.registration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Registration</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="YL-NLO" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
+        <FormLabel className="text-xl font-bold">Departure</FormLabel>
         <div className="flex gap-4">
           <FormField
-            control={newFlightForm.control}
-            name="pics"
+            control={flightForm.control}
+            name="departure.place"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold">Name(s) PIC</FormLabel>
+                <FormLabel>Place</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Name(s) PIC" />
+                  <Input placeholder="LELL" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={flightForm.control}
+            name="departure.time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Time</FormLabel>
+                <FormControl>
+                  <Input placeholder="12:00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+        <FormLabel className="text-xl font-bold">Arrival</FormLabel>
         <div className="flex gap-4">
           <FormField
-            control={newFlightForm.control}
-            name="selfSigned"
+            control={flightForm.control}
+            name="arrival.place"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold">Self Signed</FormLabel>
-                <div className="flex gap-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={selfSigned}
-                      onCheckedChange={() => {
-                        setSelfSigned(!selfSigned);
-                        field.onChange(!selfSigned);
-                      }}
-                      className="self-center"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    If you are the PIC signing the flight, please check this
-                    box.
-                  </FormDescription>
-                  <FormMessage />
-                </div>
+                <FormLabel>Place</FormLabel>
+                <FormControl>
+                  <Input placeholder="LEGE" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={flightForm.control}
+            name="arrival.time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Time</FormLabel>
+                <FormControl>
+                  <Input placeholder="13:00" {...field} />
+                </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
         </div>
+        <FormLabel className="text-xl font-bold">Aircraft</FormLabel>
+        <div className="flex gap-4">
+          <FormField
+            control={flightForm.control}
+            name="aircraft.model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model</FormLabel>
+                <FormControl>
+                  <Input placeholder="C150" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={flightForm.control}
+            name="aircraft.registration"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Registration</FormLabel>
+                <FormControl>
+                  <Input placeholder="YL-NLO" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormLabel className="text-xl font-bold">PICs</FormLabel>
+        <FormField
+          control={flightForm.control}
+          name="pics"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name(s)</FormLabel>
+              <FormControl>
+                <Input placeholder="SELF" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={flightForm.control}
+          name="selfSigned"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-bold">Self Signed</FormLabel>
+              <div className="flex gap-4">
+                <FormControl>
+                  <Checkbox
+                    checked={selfSigned}
+                    onCheckedChange={() => {
+                      setSelfSigned(!selfSigned);
+                      field.onChange(!selfSigned);
+                    }}
+                    className="self-center"
+                  />
+                </FormControl>
+                <FormDescription>
+                  If you are the PIC signing the flight, please check this box.
+                </FormDescription>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
         {!selfSigned && (
           <div className="flex gap-4">
             <FormField
-              control={newFlightForm.control}
+              control={flightForm.control}
               name="signedBy"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Signed By</FormLabel>
+                  <FormLabel className="font-bold">Signed By</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="instructor.eth" />
                   </FormControl>
@@ -368,243 +354,72 @@ export default function NewFlight() {
             />
           </div>
         )}
-        <div className="flex gap-4">
-          <FormField
-            control={newFlightForm.control}
-            name="isSinglePilotTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold">
-                  Is single pilot time?
-                </FormLabel>
-                <div className="flex gap-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={() => {
-                        setIsSinglePilotTime(!isSinglePilotTime);
-                        field.onChange(!isSinglePilotTime);
-                      }}
-                      className="self-center"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    If the flight was flown as a single pilot, check this box.
-                  </FormDescription>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-        </div>
-        {isSinglePilotTime ? (
-          <div className="flex flex-col gap-4">
-            <Label className="font-bold">Single Pilot Time</Label>
-            <div className="flex gap-4">
-              <FormField
-                control={newFlightForm.control}
-                name="singlePilotTime.singleEngine"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex gap-1">
-                      <FormLabel>Single Engine</FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={() => {
-                            field.onChange(true);
-                            newFlightForm.setValue(
-                              "singlePilotTime.multiEngine",
-                              false
-                            );
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={newFlightForm.control}
-                name="singlePilotTime.multiEngine"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex gap-1">
-                      <FormLabel>Multi Engine</FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={() => {
-                            field.onChange(true);
-                            newFlightForm.setValue(
-                              "singlePilotTime.singleEngine",
-                              false
-                            );
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <Label className="font-bold">Multi Pilot Time</Label>
-            <div className="flex gap-4">
-              <FormField
-                control={newFlightForm.control}
-                name="multiPilotTime.hours"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Multi Pilot Time (Hours)</FormLabel>
+        <div className="flex flex-col gap-4">
+          <FormLabel className="text-xl font-bold">Single Pilot Time</FormLabel>
+          <div className="flex gap-4">
+            <FormField
+              control={flightForm.control}
+              name="singlePilotTime.singleEngine"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex gap-1">
+                    <FormLabel>Single Engine</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        min={0}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber);
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={() => {
+                          field.onChange(true);
+                          flightForm.setValue(
+                            "singlePilotTime.multiEngine",
+                            false
+                          );
                         }}
                       />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={newFlightForm.control}
-                name="multiPilotTime.minutes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Multi Pilot Time (Minutes)</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={flightForm.control}
+              name="singlePilotTime.multiEngine"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex gap-1">
+                    <FormLabel>Multi Engine</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        min={0}
-                        max={59}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber);
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={() => {
+                          field.onChange(true);
+                          flightForm.setValue(
+                            "singlePilotTime.singleEngine",
+                            false
+                          );
                         }}
                       />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-        )}
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">Total Time of Flight</Label>
-          <div className="flex gap-4">
-            <FormField
-              control={newFlightForm.control}
-              name="totalTimeOfFlight.hours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hours</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                      min={0}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="totalTimeOfFlight.minutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Minutes</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      max={59}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
           </div>
         </div>
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">Number of Landings</Label>
-          <div className="flex gap-4">
-            <FormField
-              control={newFlightForm.control}
-              name="numberOfLandings.day"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Day</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="numberOfLandings.night"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Night</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">Flight Conditions</Label>
-        </div>
+        <FormLabel className="text-xl font-bold">Time of flight</FormLabel>
         <div className="flex gap-4">
           <FormField
-            control={newFlightForm.control}
-            name="conditionsOfFlight.night.hours"
+            control={flightForm.control}
+            name="totalTimeOfFlight.hours"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Night Time (Hours)</FormLabel>
+                <FormLabel>Hours</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
+                    placeholder="01"
                     {...field}
-                    min={0}
                     onChange={(e) => {
                       field.onChange(e.target.valueAsNumber);
                     }}
@@ -615,17 +430,16 @@ export default function NewFlight() {
             )}
           />
           <FormField
-            control={newFlightForm.control}
-            name="conditionsOfFlight.night.minutes"
+            control={flightForm.control}
+            name="totalTimeOfFlight.minutes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Night Time (Minutes)</FormLabel>
+                <FormLabel>Minutes</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
+                    placeholder="30"
                     {...field}
-                    min={0}
-                    max={59}
                     onChange={(e) => {
                       field.onChange(e.target.valueAsNumber);
                     }}
@@ -636,397 +450,63 @@ export default function NewFlight() {
             )}
           />
         </div>
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">IFR</Label>
-          <div className="flex gap-4">
-            <FormField
-              control={newFlightForm.control}
-              name="conditionsOfFlight.ifr.hood.hours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>IFR Hood Time (Hours)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="conditionsOfFlight.ifr.hood.minutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>IFR Hood Time (Minutes)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      max={59}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="conditionsOfFlight.ifr.actual.hours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>IFR Actual Time (Hours)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="conditionsOfFlight.ifr.actual.minutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>IFR Actual Time (Minutes)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      max={59}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="conditionsOfFlight.flightRules"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Flight Rules</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Flight Rules" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">Pilot Function Time</Label>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col">
-              <Label className="font-bold">PIC</Label>
-              <div className="flex gap-4">
-                <FormField
-                  control={newFlightForm.control}
-                  name="pilotFunctionTime.pic.hours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Hours</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          min={0}
-                          onChange={(e) => {
-                            field.onChange(e.target.valueAsNumber);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={newFlightForm.control}
-                  name="pilotFunctionTime.pic.minutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minutes</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          min={0}
-                          max={59}
-                          onChange={(e) => {
-                            field.onChange(e.target.valueAsNumber);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <Label className="font-bold">Copilot</Label>
-              <div className="flex gap-4">
-                <FormField
-                  control={newFlightForm.control}
-                  name="pilotFunctionTime.copilot.hours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Hours</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          min={0}
-                          onChange={(e) => {
-                            field.onChange(e.target.valueAsNumber);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={newFlightForm.control}
-                  name="pilotFunctionTime.copilot.minutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minutes</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          min={0}
-                          max={59}
-                          onChange={(e) => {
-                            field.onChange(e.target.valueAsNumber);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <Label className="font-bold">Dual</Label>
-              <div className="flex gap-4">
-                <FormField
-                  control={newFlightForm.control}
-                  name="pilotFunctionTime.dual.hours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Hours</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          min={0}
-                          onChange={(e) => {
-                            field.onChange(e.target.valueAsNumber);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={newFlightForm.control}
-                  name="pilotFunctionTime.dual.minutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minutes</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          min={0}
-                          max={59}
-                          onChange={(e) => {
-                            field.onChange(e.target.valueAsNumber);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <Label className="font-bold">FI</Label>
-              <div className="flex gap-4">
-                <FormField
-                  control={newFlightForm.control}
-                  name="pilotFunctionTime.fi.hours"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Hours</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          min={0}
-                          onChange={(e) => {
-                            field.onChange(e.target.valueAsNumber);
-                          }}
-                          className="w-1/2"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={newFlightForm.control}
-                  name="pilotFunctionTime.fi.minutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minutes</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          min={0}
-                          max={59}
-                          onChange={(e) => {
-                            field.onChange(e.target.valueAsNumber);
-                          }}
-                          className="w-1/2"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <Label className="font-bold">FSTD Session</Label>
+        <FormLabel className="text-xl font-bold">Landings</FormLabel>
+        <div className="flex gap-4">
           <FormField
-            control={newFlightForm.control}
-            name="fstdSession.date"
+            control={flightForm.control}
+            name="numberOfLandings.day"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Date</FormLabel>
+                <FormLabel>Day</FormLabel>
                 <FormControl>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[280px] justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="number"
+                    placeholder="1"
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e.target.valueAsNumber);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
-            control={newFlightForm.control}
-            name="fstdSession.type"
+            control={flightForm.control}
+            name="numberOfLandings.night"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>FSTD Session Type</FormLabel>
+                <FormLabel>Night</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="FSTD Session Type" />
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e.target.valueAsNumber);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div className="flex gap-4">
-            <FormField
-              control={newFlightForm.control}
-              name="fstdSession.totalTime.hours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>FSTD Session (Hours)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={newFlightForm.control}
-              name="fstdSession.totalTime.minutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>FSTD Session (Minutes)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      min={0}
-                      max={59}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
         </div>
-        <Button type="submit">Submit</Button>
+        <FormLabel className="text-xl font-bold">Remarks</FormLabel>
+        <FormField
+          control={flightForm.control}
+          name="remarks"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Save flight</Button>
       </form>
     </Form>
   );
