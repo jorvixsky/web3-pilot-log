@@ -37,7 +37,7 @@ import { useNavigate } from "react-router-dom";
 export default function NewFlight() {
   const [isLoading, setIsLoading] = useState(false);
   const [selfSigned, setSelfSigned] = useState(true);
-  const [isSinglePilotTime, setIsSinglePilotTime] = useState(true);
+  const [currentLogbook, setCurrentLogbook] = useState<any | null>(null);
   const navigate = useNavigate();
 
   const { writeContractAsync } = useWriteContract();
@@ -50,26 +50,29 @@ export default function NewFlight() {
     eas.connect(signer);
   }
 
-  const { data: logbookCid } = useReadContract({
+  const { data } = useReadContract({
     address: pilotLog[0].address as `0x${string}`,
     abi: pilotLog[0].abi,
     functionName: "getLogbooks",
     args: [address],
+    account: address,
   });
 
   useEffect(() => {
-    if (!logbookCid) return;
-    async function getLogbook() {
-      const response = await axios.get(
-        `https://gateway.lighthouse.storage/ipfs/${logbookCid}`
-      );
-      console.log(response.data);
+    // @ts-expect-error: data is not properly typed
+    if (data && data.openBook.id) {
+      async function getLogbook() {
+        const response = await axios.get(
+          // @ts-expect-error: data is not properly typed
+          `https://gateway.lighthouse.storage/ipfs/${data.openBook.id}`
+        );
+        setCurrentLogbook(response.data);
+      }
+      getLogbook();
     }
-    getLogbook();
-  }, [logbookCid]);
+  }, [data]);
 
   async function onSubmit(values: z.infer<typeof flightSchema>) {
-    console.log(values);
     setIsLoading(true);
     if (!eas) {
       throw new Error("EAS not connected");
@@ -107,17 +110,29 @@ export default function NewFlight() {
       signer
     );
 
-    const stringifiedOffchainAttestation =
-      stringifyAttestation(offchainAttestation);
+    const stringifiedOffchainAttestation = [
+      offchainAttestation,
+      currentLogbook,
+    ];
+
+    console.log(stringifiedOffchainAttestation);
 
     const response = await lighthouse.uploadText(
-      stringifiedOffchainAttestation,
+      JSON.stringify(
+        stringifiedOffchainAttestation.map((offchainAttestation) => ({
+          ...offchainAttestation,
+          expirationTime: Number(offchainAttestation.message.expirationTime),
+          time: Number(offchainAttestation.message.time),
+        })),
+        (key, value) => {
+          return typeof value === "bigint" ? Number(value) : value;
+        },
+        2
+      ),
       sessionStorage.getItem("lighthouseApiKey") ?? "" // TODO: add file name?
     );
 
-    const flightIPFS = response.data.hash;
-
-    console.log(flightIPFS);
+    const flightIPFS = response.data.Hash;
 
     await writeContractAsync({
       address: pilotLog[0].address as `0x${string}`,
@@ -182,7 +197,7 @@ export default function NewFlight() {
                     <Button
                       variant={"outline"}
                       className={cn(
-                        "w-[280px] justify-start text-left font-normal",
+                        "w-full justify-start text-left font-normal",
                         !field.value && "text-muted-foreground"
                       )}
                     >
@@ -506,7 +521,7 @@ export default function NewFlight() {
             </FormItem>
           )}
         />
-        <Button type="submit">Save flight</Button>
+        <Button type="submit">{isLoading ? "Saving..." : "Save flight"}</Button>
       </form>
     </Form>
   );

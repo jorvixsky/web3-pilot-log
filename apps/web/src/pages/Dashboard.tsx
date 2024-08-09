@@ -5,7 +5,8 @@ import { useAccount } from "wagmi";
 import { useReadContract } from "wagmi";
 import pilotLog from "../../contracts.json";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import axios from "axios";
 
 interface getUserProfileResponse {
   profileCid: string;
@@ -14,8 +15,25 @@ interface getUserProfileResponse {
 
 export default function Dashboard() {
   const [isLicenseConfigured, setIsLicenseConfigured] = useState(true);
+  const [currentLogbook, setCurrentLogbook] = useState("");
 
   const { isConnected, address } = useAccount();
+  const [searchParams] = useSearchParams();
+
+  const logbookCid = searchParams.get("flightIPFS");
+
+  useEffect(() => {
+    if (logbookCid) {
+      async function getLogbook() {
+        const response = await axios.get(
+          `https://gateway.lighthouse.storage/ipfs/${logbookCid}`
+        );
+        setCurrentLogbook(response.data);
+      }
+      getLogbook();
+      console.log(currentLogbook);
+    }
+  }, [logbookCid]);
 
   // TODO: Add error handling
 
