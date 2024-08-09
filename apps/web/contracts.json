@@ -1,16 +1,246 @@
 [
   {
-    "name": "Counter",
+    "name": "PilotLog",
     "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
     "abi": [
       {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "currentLogbookNewCid",
+            "type": "string"
+          }
+        ],
+        "name": "addEntryToCurrentLogbook",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "_currentLogbookNewCid",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "_validator",
+            "type": "address"
+          }
+        ],
+        "name": "addEntryWithValidator",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
         "inputs": [],
-        "name": "count",
+        "name": "closeCurrentLogbook",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getEntriesToValidate",
         "outputs": [
           {
-            "internalType": "uint256",
+            "components": [
+              {
+                "internalType": "address",
+                "name": "logbookOwner",
+                "type": "address"
+              },
+              {
+                "internalType": "string",
+                "name": "logbookId",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "entryCid",
+                "type": "string"
+              },
+              {
+                "internalType": "address",
+                "name": "validator",
+                "type": "address"
+              },
+              {
+                "internalType": "bool",
+                "name": "isValidated",
+                "type": "bool"
+              }
+            ],
+            "internalType": "struct PilotLog.LogbookEntryValidation[]",
             "name": "",
-            "type": "uint256"
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "logbookOwner",
+            "type": "address"
+          }
+        ],
+        "name": "getLogbooks",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "closedBooksCount",
+                "type": "uint256"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "string",
+                    "name": "id",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "string",
+                    "name": "lastEntryCid",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "entryValidationCount",
+                    "type": "uint256"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "address",
+                        "name": "logbookOwner",
+                        "type": "address"
+                      },
+                      {
+                        "internalType": "string",
+                        "name": "logbookId",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "string",
+                        "name": "entryCid",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "address",
+                        "name": "validator",
+                        "type": "address"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "isValidated",
+                        "type": "bool"
+                      }
+                    ],
+                    "internalType": "struct PilotLog.LogbookEntryValidation[]",
+                    "name": "entryValidation",
+                    "type": "tuple[]"
+                  }
+                ],
+                "internalType": "struct PilotLog.Logbook[]",
+                "name": "closedBook",
+                "type": "tuple[]"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "string",
+                    "name": "id",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "string",
+                    "name": "lastEntryCid",
+                    "type": "string"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "entryValidationCount",
+                    "type": "uint256"
+                  },
+                  {
+                    "components": [
+                      {
+                        "internalType": "address",
+                        "name": "logbookOwner",
+                        "type": "address"
+                      },
+                      {
+                        "internalType": "string",
+                        "name": "logbookId",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "string",
+                        "name": "entryCid",
+                        "type": "string"
+                      },
+                      {
+                        "internalType": "address",
+                        "name": "validator",
+                        "type": "address"
+                      },
+                      {
+                        "internalType": "bool",
+                        "name": "isValidated",
+                        "type": "bool"
+                      }
+                    ],
+                    "internalType": "struct PilotLog.LogbookEntryValidation[]",
+                    "name": "entryValidation",
+                    "type": "tuple[]"
+                  }
+                ],
+                "internalType": "struct PilotLog.Logbook",
+                "name": "openBook",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct PilotLog.UserLogbooksInfo",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "logbookOwner",
+            "type": "address"
+          }
+        ],
+        "name": "getProfile",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "profileCid",
+                "type": "string"
+              },
+              {
+                "internalType": "enum PilotLog.UserType",
+                "name": "userType",
+                "type": "uint8"
+              }
+            ],
+            "internalType": "struct PilotLog.User",
+            "name": "",
+            "type": "tuple"
           }
         ],
         "stateMutability": "view",
@@ -18,7 +248,158 @@
       },
       {
         "inputs": [],
-        "name": "increment",
+        "name": "getSenderAddress",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_user",
+            "type": "address"
+          }
+        ],
+        "name": "getUserProfile",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "profileCid",
+                "type": "string"
+              },
+              {
+                "internalType": "enum PilotLog.UserType",
+                "name": "userType",
+                "type": "uint8"
+              }
+            ],
+            "internalType": "struct PilotLog.User",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getValidatedEntries",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "logbookOwner",
+                "type": "address"
+              },
+              {
+                "internalType": "string",
+                "name": "logbookId",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "entryCid",
+                "type": "string"
+              },
+              {
+                "internalType": "address",
+                "name": "validator",
+                "type": "address"
+              },
+              {
+                "internalType": "bool",
+                "name": "isValidated",
+                "type": "bool"
+              }
+            ],
+            "internalType": "struct PilotLog.LogbookEntryValidation[]",
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "newAllowedAddress",
+            "type": "address"
+          }
+        ],
+        "name": "giveLogbookPermission",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "promoteToSigner",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "_profileCid",
+            "type": "string"
+          },
+          {
+            "internalType": "enum PilotLog.UserType",
+            "name": "_userType",
+            "type": "uint8"
+          }
+        ],
+        "name": "registerProfile",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "revokedAddress",
+            "type": "address"
+          }
+        ],
+        "name": "revokeLogbookPermission",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_logbookOwner",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "_logbookId",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "_validationCid",
+            "type": "string"
+          }
+        ],
+        "name": "validateEntry",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
