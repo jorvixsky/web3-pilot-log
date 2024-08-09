@@ -1,12 +1,18 @@
 import Header from "@/components/common/header";
 import NewLicense from "@/components/common/license";
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { useReadContract } from "wagmi";
 import pilotLog from "../../contracts.json";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import {
+  SchemaEncoder,
+  SchemaRegistry,
+} from "@ethereum-attestation-service/eas-sdk";
+import { flightsSchema } from "@/lib/eas";
+import { useEthersProvider } from "@/lib/ethers";
 
 interface getUserProfileResponse {
   profileCid: string;
@@ -15,12 +21,20 @@ interface getUserProfileResponse {
 
 export default function Dashboard() {
   const [isLicenseConfigured, setIsLicenseConfigured] = useState(true);
-  const [currentLogbook, setCurrentLogbook] = useState("");
-
+  const [currentLogbook, setCurrentLogbook] = useState<any[]>([]);
+  const [decodedLogbook, setDecodedLogbook] = useState<any[]>([]);
+  const provider = useEthersProvider();
   const { isConnected, address } = useAccount();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const chain = useChainId();
 
   const logbookCid = searchParams.get("flightIPFS");
+
+  const schemaRegistry = new SchemaRegistry(
+    "0x4200000000000000000000000000000000000020"
+  );
+  // @ts-expect-error: provider is not properly typed
+  schemaRegistry.connect(provider);
 
   useEffect(() => {
     if (logbookCid) {
@@ -28,12 +42,22 @@ export default function Dashboard() {
         const response = await axios.get(
           `https://gateway.lighthouse.storage/ipfs/${logbookCid}`
         );
+        console.log(response.data);
         setCurrentLogbook(response.data);
       }
       getLogbook();
-      console.log(currentLogbook);
     }
   }, [logbookCid]);
+
+  console.log(currentLogbook);
+
+  useEffect(() => {
+    if (currentLogbook.length > 0) {
+      currentLogbook.map((entry) => {
+        console.log(entry);
+      });
+    }
+  }, [currentLogbook]);
 
   // TODO: Add error handling
 
@@ -43,6 +67,20 @@ export default function Dashboard() {
     functionName: "getUserProfile",
     args: [address],
   }).data as getUserProfileResponse;
+
+  const logbookData = useReadContract({
+    address: pilotLog[0].address as `0x${string}`,
+    abi: pilotLog[0].abi,
+    functionName: "getLogbooks",
+    args: [address],
+    account: address,
+  }).data as any;
+
+  useEffect(() => {
+    if (logbookData) {
+      setSearchParams({ flightIPFS: logbookData.openBook.id });
+    }
+  }, [logbookData]);
 
   useEffect(() => {
     setIsLicenseConfigured(result && result.profileCid ? true : false);
