@@ -21,11 +21,18 @@ import { z } from "zod";
 import { useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { stringifyAttestation } from "@/lib/utils";
+import { useWriteContract } from "wagmi";
+import pilotLog from "../../../contracts.json";
+import { useNavigate } from "react-router-dom";
 
 export default function NewLicense() {
   const [isLoading, setIsLoading] = useState(false);
   const eas = useEAS();
   const signer = useEthersSigner();
+
+  const { writeContractAsync } = useWriteContract();
+
+  const navigate = useNavigate();
 
   if (eas && signer) {
     eas.connect(signer);
@@ -88,12 +95,15 @@ export default function NewLicense() {
 
     const licenseIPFS = response.data.Hash;
 
-    localStorage.setItem("licenseIPFS", licenseIPFS); // TODO: move to contract
+    await writeContractAsync({
+      abi: pilotLog[0].abi,
+      address: pilotLog[0].address as `0x${string}`,
+      functionName: "registerProfile",
+      args: [licenseIPFS, 0],
+    });
 
-    console.log(licenseIPFS);
     setIsLoading(false);
-
-    window.location.href = "/dashboard";
+    navigate("/");
   }
 
   const licenseForm = useForm<z.infer<typeof licenseSchema>>({
