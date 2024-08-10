@@ -36,7 +36,9 @@ const inputSelector = (
   type: string,
   placeholder: string,
   field: any,
+  // @ts-ignore: key not being used
   options: OptionType[],
+  // @ts-ignore: key not being used
   accept?: string,
   disabled?: boolean,
   step?: number
@@ -139,6 +141,7 @@ const FormComponent: React.FC<FormFieldProps> = (props) => {
     name,
     label,
     placeholder,
+    // @ts-ignore: key not being used
     description,
     type,
     options,

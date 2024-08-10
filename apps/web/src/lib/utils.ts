@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function stringifyAttestation(obj: SignedOffchainAttestation): string {
+  // @ts-ignore: key not being used
   return JSON.stringify(obj, (key, value) =>
     typeof value === "bigint" ? value.toString() : value
   );

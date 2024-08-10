@@ -1,14 +1,4 @@
-import { z } from "zod";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
-import { flightSchema } from "@/lib/schemas";
 import { DataTable } from "@/components/ui/data-table";
 
 const columns: ColumnDef<any>[] = [
