@@ -13,7 +13,7 @@ import { flightSchema } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { cn, stringifyAttestation } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   Popover,
   PopoverTrigger,
@@ -123,6 +123,7 @@ export default function NewFlight() {
           currentLogbook ? currentLogbook.data.data : [],
         ].flat(),
       },
+      // @ts-ignore: key not being used
       (key, value) => {
         return typeof value === "bigint" ? Number(value) : value;
       }

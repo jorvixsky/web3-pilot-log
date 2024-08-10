@@ -1,7 +1,7 @@
 import Header from "@/components/common/header";
 import NewLicense from "@/components/common/license";
 import { useEffect, useState } from "react";
-import { useAccount, useChainId } from "wagmi";
+import { useAccount } from "wagmi";
 import { useReadContract } from "wagmi";
 import pilotLog from "../../contracts.json";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import {
 } from "@ethereum-attestation-service/eas-sdk";
 import { flightsSchema } from "@/lib/eas";
 import { useEthersProvider } from "@/lib/ethers";
-import Flights from "@/components/common/flights";
 import FlightsTable from "@/components/common/flights";
 
 interface getUserProfileResponse {
@@ -28,7 +27,6 @@ export default function Dashboard() {
   const provider = useEthersProvider();
   const { isConnected, address } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
-  const chain = useChainId();
 
   const logbookCid = searchParams.get("flightIPFS");
 
@@ -56,9 +54,7 @@ export default function Dashboard() {
       setDecodedLogbook([]);
       const schema = await schemaRegistry.getSchema({ uid: flightsSchema });
       const schemaEncoder = new SchemaEncoder(schema.schema);
-      console.log(currentLogbook);
       const decodedData = currentLogbook.map((logbook: any) => {
-        console.log(logbook);
         const data = schemaEncoder.decodeData(logbook.message.data);
         // @ts-expect-error: data is not properly typed
         return JSON.parse(data[0].value.value);
