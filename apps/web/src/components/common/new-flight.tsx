@@ -60,13 +60,13 @@ export default function NewFlight() {
 
   useEffect(() => {
     // @ts-expect-error: data is not properly typed
-    if (data && data.openBook.id) {
+    if (data && data.openBook.lastEntryCid) {
       async function getLogbook() {
         const response = await axios.get(
           // @ts-expect-error: data is not properly typed
-          `https://gateway.lighthouse.storage/ipfs/${data.openBook.id}`
+          `https://gateway.lighthouse.storage/ipfs/${data.openBook.lastEntryCid}`
         );
-        setCurrentLogbook(response.data);
+        setCurrentLogbook(response);
       }
       getLogbook();
     }
@@ -110,25 +110,26 @@ export default function NewFlight() {
       signer
     );
 
-    const stringifiedOffchainAttestation = [
-      offchainAttestation,
-      currentLogbook,
-    ];
+    const stringifiedOffchainAttestation = JSON.stringify(
+      {
+        data: [
+          {
+            ...offchainAttestation,
+            expirationTime: Number(offchainAttestation.message.expirationTime),
+            time: Number(offchainAttestation.message.time),
+          },
+          currentLogbook ? currentLogbook.data : [],
+        ].flat(),
+      },
+      (key, value) => {
+        return typeof value === "bigint" ? Number(value) : value;
+      }
+    );
 
     console.log(stringifiedOffchainAttestation);
 
     const response = await lighthouse.uploadText(
-      JSON.stringify(
-        stringifiedOffchainAttestation.map((offchainAttestation) => ({
-          ...offchainAttestation,
-          expirationTime: Number(offchainAttestation.message.expirationTime),
-          time: Number(offchainAttestation.message.time),
-        })),
-        (key, value) => {
-          return typeof value === "bigint" ? Number(value) : value;
-        },
-        2
-      ),
+      stringifiedOffchainAttestation,
       sessionStorage.getItem("lighthouseApiKey") ?? "" // TODO: add file name?
     );
     const flightIPFS = response.data.Hash;

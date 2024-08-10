@@ -44,26 +44,30 @@ export default function Dashboard() {
         const response = await axios.get(
           `https://gateway.lighthouse.storage/ipfs/${logbookCid}`
         );
-        console.log(response.data);
-        setCurrentLogbook(response.data);
+        setCurrentLogbook(response.data.data);
       }
       getLogbook();
     }
   }, [logbookCid]);
 
-  console.log(currentLogbook);
-
   useEffect(() => {
-    if (!currentLogbook.length) return;
     async function getSchema() {
+      if (!currentLogbook || currentLogbook.length < 1) return;
+      setDecodedLogbook([]);
       const schema = await schemaRegistry.getSchema({ uid: flightsSchema });
       const schemaEncoder = new SchemaEncoder(schema.schema);
-      const data = schemaEncoder.decodeData(currentLogbook.message.data);
-      console.log(JSON.parse(data[0].value.value));
-      setDecodedLogbook(JSON.parse(data[0].value.value));
+      console.log(currentLogbook);
+      const decodedData = currentLogbook.map((logbook: any) => {
+        const data = schemaEncoder.decodeData(logbook.message.data);
+        // @ts-expect-error: data is not properly typed
+        return JSON.parse(data[0].value.value);
+      });
+      setDecodedLogbook(decodedData);
     }
     getSchema();
   }, [currentLogbook]);
+
+  console.log(decodedLogbook);
 
   // TODO: Add error handling
 
@@ -84,7 +88,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (logbookData) {
-      setSearchParams({ flightIPFS: logbookData.openBook.id });
+      setSearchParams({ flightIPFS: logbookData.openBook.lastEntryCid });
     }
   }, [logbookData]);
 
