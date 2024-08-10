@@ -110,6 +110,8 @@ export default function NewFlight() {
       signer
     );
 
+    console.log(currentLogbook);
+
     const stringifiedOffchainAttestation = JSON.stringify(
       {
         data: [
@@ -118,7 +120,7 @@ export default function NewFlight() {
             expirationTime: Number(offchainAttestation.message.expirationTime),
             time: Number(offchainAttestation.message.time),
           },
-          currentLogbook ? currentLogbook.data : [],
+          currentLogbook ? currentLogbook.data.data : [],
         ].flat(),
       },
       (key, value) => {

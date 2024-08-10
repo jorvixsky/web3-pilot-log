@@ -61,7 +61,7 @@ const columns: ColumnDef<any>[] = [
 export default function FlightsTable(data: any) {
   return (
     <div>
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={data.data} />
     </div>
   );
 }

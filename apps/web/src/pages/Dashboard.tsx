@@ -58,6 +58,7 @@ export default function Dashboard() {
       const schemaEncoder = new SchemaEncoder(schema.schema);
       console.log(currentLogbook);
       const decodedData = currentLogbook.map((logbook: any) => {
+        console.log(logbook);
         const data = schemaEncoder.decodeData(logbook.message.data);
         // @ts-expect-error: data is not properly typed
         return JSON.parse(data[0].value.value);
@@ -66,8 +67,6 @@ export default function Dashboard() {
     }
     getSchema();
   }, [currentLogbook]);
-
-  console.log(decodedLogbook);
 
   // TODO: Add error handling
 
