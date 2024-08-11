@@ -33,6 +33,7 @@ import pilotLog from "../../../contracts.json";
 import axios from "axios";
 import { useWriteContract } from "wagmi";
 import { useNavigate } from "react-router-dom";
+import useSelectContract from "@/hooks/useSelectContract";
 
 export default function NewFlight() {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +45,7 @@ export default function NewFlight() {
   const eas = useEAS();
   const signer = useEthersSigner();
 
+  const contract = useSelectContract();
   const { address } = useAccount();
 
   if (eas && signer) {
@@ -51,7 +53,7 @@ export default function NewFlight() {
   }
 
   const { data } = useReadContract({
-    address: pilotLog[0].address as `0x${string}`,
+    address: contract,
     abi: pilotLog[0].abi,
     functionName: "getLogbooks",
     args: [address],
@@ -138,7 +140,7 @@ export default function NewFlight() {
     const flightIPFS = response.data.Hash;
 
     await writeContractAsync({
-      address: pilotLog[0].address as `0x${string}`,
+      address: contract,
       abi: pilotLog[0].abi,
       functionName: "addEntryToCurrentLogbook",
       args: [flightIPFS],

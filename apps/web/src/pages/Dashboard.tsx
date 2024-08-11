@@ -14,6 +14,7 @@ import {
 import { flightsSchema } from "@/lib/eas";
 import { useEthersProvider } from "@/lib/ethers";
 import FlightsTable from "@/components/common/flights";
+import useSelectContract from "@/hooks/useSelectContract";
 
 interface getUserProfileResponse {
   profileCid: string;
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const [currentLogbook, setCurrentLogbook] = useState<any[]>([]);
   const [decodedLogbook, setDecodedLogbook] = useState<any[]>([]);
   const provider = useEthersProvider();
+  const contract = useSelectContract();
   const { isConnected, address } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -67,14 +69,14 @@ export default function Dashboard() {
   // TODO: Add error handling
 
   const result = useReadContract({
-    address: pilotLog[0].address as `0x${string}`,
+    address: contract,
     abi: pilotLog[0].abi,
     functionName: "getUserProfile",
     args: [address],
   }).data as getUserProfileResponse;
 
   const logbookData = useReadContract({
-    address: pilotLog[0].address as `0x${string}`,
+    address: contract,
     abi: pilotLog[0].abi,
     functionName: "getLogbooks",
     args: [address],

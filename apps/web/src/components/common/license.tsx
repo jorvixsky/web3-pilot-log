@@ -25,12 +25,13 @@ import { stringifyAttestation } from "@/lib/utils";
 import { useWriteContract } from "wagmi";
 import pilotLog from "../../../contracts.json";
 import { useNavigate } from "react-router-dom";
+import useSelectContract from "@/hooks/useSelectContract";
 
 export default function NewLicense() {
   const [isLoading, setIsLoading] = useState(false);
   const eas = useEAS();
   const signer = useEthersSigner();
-
+  const contract = useSelectContract();
   const { writeContractAsync } = useWriteContract();
 
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ export default function NewLicense() {
 
     await writeContractAsync({
       abi: pilotLog[0].abi,
-      address: pilotLog[0].address as `0x${string}`,
+      address: contract,
       functionName: "registerProfile",
       args: [licenseIPFS, values.signer ? 1 : 0],
     });

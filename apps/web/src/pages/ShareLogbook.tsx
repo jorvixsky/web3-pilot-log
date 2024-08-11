@@ -4,16 +4,18 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useWriteContract } from "wagmi";
 import pilotLog from "../../contracts.json";
+import useSelectContract from "@/hooks/useSelectContract";
 
 export default function ShareLogbookPage() {
   const [loading, setIsLoading] = useState<boolean>(false);
   const [address, setAddress] = useState<string | undefined>(undefined);
+  const contract = useSelectContract();
   const { writeContractAsync } = useWriteContract();
 
   const handleShare = async () => {
     setIsLoading(true);
     await writeContractAsync({
-      address: pilotLog[0].address as `0x${string}`,
+      address: contract,
       abi: pilotLog[0].abi,
       functionName: "giveLogbookPermission",
       args: [address],
