@@ -142,6 +142,7 @@ export default function ValidateEntryPopup({isLoading, contractData, data,onVali
                     <h2 className={header2Classname}>Remarks</h2>
                     <p>{data?.remarks}</p>
                 </div>
+                { showValidateButton &&
                 <div id="validate" className="size-full flex items-center flex-row place-content-center">
                     <Button className="items-center" onClick={(e)=>validateEntry(e)}>{
                     isLoading?
@@ -152,7 +153,7 @@ export default function ValidateEntryPopup({isLoading, contractData, data,onVali
                     :
                     <>Validate</>
                         }</Button>
-                </div>
+                </div>}
             </div>
         </div>
     );
