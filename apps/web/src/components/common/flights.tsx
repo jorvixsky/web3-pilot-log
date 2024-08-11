@@ -1,5 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
+import { useState } from "react";
+import FlightPopup from "./flightPopup";
 
 const columns: ColumnDef<any>[] = [
   {
@@ -19,12 +21,12 @@ const columns: ColumnDef<any>[] = [
     header: "Arrival",
   },
   {
-    accessorKey: "arrival.time",
-    header: "Arrival Time",
-  },
-  {
     accessorKey: "aircraft.model",
     header: "Aircraft",
+  },
+  {
+    accessorKey: "totalTimeOfFlight.hours",
+    header: "Total Time of Flight",
   },
   {
     accessorKey: "numberOfLandings.day",
@@ -50,12 +52,22 @@ const columns: ColumnDef<any>[] = [
     accessorKey: "pics",
     header: "Pics",
   },
+  {
+    accessorKey: "seeMore",
+    header: "See more"
+  }
 ];
 
 export default function FlightsTable(data: any) {
+  const [popupInfo, setPopupInfo] = useState<any>(undefined);
+
+  function showPopupForFlightAtIndex(rowIndex: number){
+    setPopupInfo(data.data[rowIndex])
+  }
   return (
-    <div>
-      <DataTable columns={columns} data={data.data} />
+    <div >
+      <DataTable columns={columns} data={data.data} onRowClicked={showPopupForFlightAtIndex}/>
+      <FlightPopup data={popupInfo} onClosePopup={()=>setPopupInfo(undefined)}/>
     </div>
   );
 }

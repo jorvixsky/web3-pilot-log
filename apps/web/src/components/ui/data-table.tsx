@@ -13,15 +13,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "../ui/button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  onRowClicked: (rowIndex: number) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onRowClicked
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -52,16 +55,27 @@ export function DataTable<TData, TValue>({
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
+            table.getRowModel().rows.map((row, index) => (
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                {row.getVisibleCells().map((cell) => 
+                {
+                  //console.log("cell", cell);
+                  if(cell.column.id == "seeMore"){
+                    return <TableCell key={cell.id}>
+                        <Button onClick={()=>onRowClicked(index)}>
+                          view
+                        </Button>
+                      </TableCell>
+                  }
+                  return (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  )
+                })}
               </TableRow>
             ))
           ) : (
