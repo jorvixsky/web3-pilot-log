@@ -21,30 +21,6 @@ const columns: ColumnDef<any>[] = [
     header: "Aircraft",
   },
   {
-    accessorKey: "totalTimeOfFlight.hours",
-    header: "Total Time of Flight",
-  },
-  {
-    accessorKey: "numberOfLandings.day",
-    header: "Number of Landings",
-  },
-  {
-    accessorKey: "numberOfLandings.night",
-    header: "Number of Landings",
-  },
-  {
-    accessorKey: "remarks",
-    header: "Remarks",
-  },
-  {
-    accessorKey: "selfSigned",
-    header: "Self Signed",
-  },
-  {
-    accessorKey: "signedBy",
-    header: "Signed By",
-  },
-  {
     accessorKey: "pics",
     header: "Pics",
   },
@@ -58,8 +34,6 @@ export default function FlightsTable(data: any) {
   const [popupInfo, setPopupInfo] = useState<any>(undefined);
 
   function showPopupForFlightAtIndex(rowIndex: number){
-    console.log("show popup for row at index ", rowIndex)
-    console.log("for data ", data.data[rowIndex])
     setPopupInfo(data.data[rowIndex])
   }
   return (
