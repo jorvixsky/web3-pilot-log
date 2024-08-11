@@ -18,11 +18,18 @@ import useSelectContract from "@/hooks/useSelectContract";
 import { UserType } from "@/lib/enums";
 import NewEntity from "@/components/common/new-entity";
 import { Label } from "@/components/ui/label";
+import BecomeSignerPopup from "@/components/common/becomeSignerPopup";
 import AllowedProfiles from "@/components/common/allowed-profiles";
 
 interface getUserProfileResponse {
   profileCid: string;
   userType: UserType;
+}
+
+enum Role {
+  Pilot,
+  Signer,
+  Entity,
 }
 
 export default function Dashboard() {
@@ -37,6 +44,7 @@ export default function Dashboard() {
   const contract = useSelectContract();
   const { isConnected, address } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [role, setRole] = useState<Role | undefined>(undefined);
 
   const logbookCid = searchParams.get("flightIPFS");
 
@@ -74,6 +82,18 @@ export default function Dashboard() {
     getSchema();
   }, [currentLogbook]);
 
+  function contractUserTypeToRole(ut: number) {
+    switch (ut) {
+      case 0:
+        return Role.Pilot;
+      case 1:
+        return Role.Signer;
+      case 2:
+        return Role.Entity;
+    }
+    return undefined;
+  }
+
   // TODO: Add error handling
 
   const result = useReadContract({
@@ -102,6 +122,7 @@ export default function Dashboard() {
     if (result) {
       setUserType(result.userType);
     }
+    setRole(contractUserTypeToRole(result?.userType));
   }, [result]);
 
   useEffect(() => {
@@ -131,7 +152,7 @@ export default function Dashboard() {
             <NewEntity />
           </>
         )}
-        {isProfileConfigured && typeOfUserToConfigure === UserType.PILOT && (
+        {!isProfileConfigured && typeOfUserToConfigure === UserType.PILOT && (
           <>
             <NewLicense />
           </>
@@ -146,6 +167,15 @@ export default function Dashboard() {
                 <Link to="/share-logbook">
                   <Button variant="outline">Share my logbook</Button>
                 </Link>
+                {role == Role.Signer ? (
+                  <Link to="/signer-entries">
+                    <Button variant="outline">Signer's entries</Button>
+                  </Link>
+                ) : role == Role.Pilot ? (
+                  <BecomeSignerPopup />
+                ) : (
+                  <></>
+                )}
               </div>
               <div className="mx-auto">
                 <FlightsTable data={decodedLogbook} />
