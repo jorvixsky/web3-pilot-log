@@ -87,10 +87,16 @@ export default function EntriesToValidate(data: EntriesToValidateProps) {
     setDecodedEntry(undefined);
   }
 
+  function validateEntry(){
+    // TODO: do all the logic for entry validation
+
+    closePopup();
+  }
+
   return (
     <div >
       <DataTable columns={columns} data={data.data ?? []} onRowClicked={showEntryToValidate}/>
-      <ValidateEntryPopup contractData={contractData} onClosePopup={() => closePopup()} data={decodedEntry}/>
+      <ValidateEntryPopup contractData={contractData} onClosePopup={() => closePopup()} data={decodedEntry} onValidateEntry={validateEntry}/>
     </div>
   );
 }

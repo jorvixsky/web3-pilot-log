@@ -1,13 +1,15 @@
 import { ValidationResponse } from "@/lib/structs";
 import { formatDate } from "@/utils";
+import { Button } from "../ui/button";
 
 interface FlightPopupProps {
     contractData: ValidationResponse,
     data: any,
     onClosePopup: ()=>void;
+    onValidateEntry: ()=>void;
 }
 
-export default function ValidateEntryPopup({contractData, data, onClosePopup} : FlightPopupProps) {
+export default function ValidateEntryPopup({contractData, data,onValidateEntry, onClosePopup} : FlightPopupProps) {
     const header2Classname= "text-2xl font-extrabold dark:text-white";
     const header3Classname= "text-1l font-bold dark:text-white";
     const blockSeparationClass = "my-4";
@@ -123,6 +125,9 @@ export default function ValidateEntryPopup({contractData, data, onClosePopup} : 
                 <div id="remarks" className={blockSeparationClass}>
                     <h2 className={header2Classname}>Remarks</h2>
                     <p>{data?.remarks}</p>
+                </div>
+                <div id="validate" className="size-full flex items-center flex-row place-content-center">
+                    <Button className="items-center" onClick={()=>onValidateEntry()}>Validate</Button>
                 </div>
             </div>
         </div>
