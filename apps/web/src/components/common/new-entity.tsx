@@ -12,7 +12,14 @@ import { useWriteContract } from "wagmi";
 import pilotLog from "../../../contracts.json";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
@@ -46,7 +53,7 @@ export default function NewEntity() {
       {
         expirationTime: 0n,
         revocable: true,
-        time: BigInt(Date.now() / 1000),
+        time: BigInt(Math.round(Date.now() / 1000)),
         schema:
           "0x8b9de2d007deabec3aef68eab90d9eac8df16d0e9f2377250ef73e2d9b70c4f3",
         data: encodedEntityData,
@@ -87,7 +94,7 @@ export default function NewEntity() {
   });
 
   return (
-    <div className="max-w-lg w-full">
+    <div className="max-w-lg w-full flex flex-col gap-3 mx-auto">
       <h2 className="text-2xl font-bold">Entity configuration</h2>
       <p className="text-sm text-gray-500">
         Please, fill in the following fields to configure your entity.
@@ -95,7 +102,7 @@ export default function NewEntity() {
       <Form {...entityForm}>
         <form
           onSubmit={entityForm.handleSubmit(onSubmit)}
-          className="flex flex-col gpa-3"
+          className="flex flex-col gap-3"
         >
           <FormField
             control={entityForm.control}
@@ -106,13 +113,14 @@ export default function NewEntity() {
                 <FormControl>
                   <Input placeholder="My Aeroclub" {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            Create entity
+          </Button>
         </form>
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          Create entity
-        </Button>
       </Form>
     </div>
   );

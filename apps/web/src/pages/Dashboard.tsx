@@ -16,6 +16,8 @@ import { useEthersProvider } from "@/lib/ethers";
 import FlightsTable from "@/components/common/flights";
 import useSelectContract from "@/hooks/useSelectContract";
 import { UserType } from "@/lib/enums";
+import NewEntity from "@/components/common/new-entity";
+import { Label } from "@/components/ui/label";
 
 interface getUserProfileResponse {
   profileCid: string;
@@ -23,6 +25,9 @@ interface getUserProfileResponse {
 }
 
 export default function Dashboard() {
+  const [typeOfUserToConfigure, setTypeOfUserToConfigure] = useState<
+    UserType | undefined
+  >(undefined);
   const [isProfileConfigured, setIsProfileConfigured] = useState(true);
   const [userType, setUserType] = useState<UserType | undefined>(undefined);
   const [currentLogbook, setCurrentLogbook] = useState<any[]>([]);
@@ -109,22 +114,43 @@ export default function Dashboard() {
       <Header />
       <div className="flex flex-col gap-4 mx-auto justify-center items-center mt-8 mb-8">
         <h1 className="text-4xl font-bold">Dashboard</h1>
-        {!isProfileConfigured && <NewLicense />}
-        {isProfileConfigured && userType === UserType.PILOT && (
+        {!isProfileConfigured && !typeOfUserToConfigure && (
+          <div className="flex flex-col gap-4">
+            <Label>Which type of user do you want to configure?</Label>
+            <Button onClick={() => setTypeOfUserToConfigure(UserType.PILOT)}>
+              Pilot
+            </Button>
+            <Button onClick={() => setTypeOfUserToConfigure(UserType.ENTITY)}>
+              Entity
+            </Button>
+          </div>
+        )}
+        {!isProfileConfigured && typeOfUserToConfigure === UserType.ENTITY && (
           <>
-            <div className="flex gap-4 justify-center items-center ">
-              <Link to="/new-flight">
-                <Button>Create new flight</Button>
-              </Link>
-              <Link to="/share-logbook">
-                <Button variant="outline">Share my logbook</Button>
-              </Link>
-            </div>
-            <div className="mx-auto">
-              <FlightsTable data={decodedLogbook} />
-            </div>
+            <NewEntity />
           </>
         )}
+        {isProfileConfigured && typeOfUserToConfigure === UserType.PILOT && (
+          <>
+            <NewLicense />
+          </>
+        )}
+        {isProfileConfigured &&
+          (userType === UserType.PILOT || userType === UserType.SIGNER) && (
+            <>
+              <div className="flex gap-4 justify-center items-center ">
+                <Link to="/new-flight">
+                  <Button>Create new flight</Button>
+                </Link>
+                <Link to="/share-logbook">
+                  <Button variant="outline">Share my logbook</Button>
+                </Link>
+              </div>
+              <div className="mx-auto">
+                <FlightsTable data={decodedLogbook} />
+              </div>
+            </>
+          )}
       </div>
     </div>
   );
