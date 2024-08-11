@@ -139,12 +139,22 @@ export default function NewFlight() {
     );
     const flightIPFS = response.data.Hash;
 
-    await writeContractAsync({
-      address: contract,
-      abi: pilotLog[0].abi,
-      functionName: "addEntryToCurrentLogbook",
-      args: [flightIPFS],
-    });
+    if(selfSigned){
+      await writeContractAsync({
+        address: contract,
+        abi: pilotLog[0].abi,
+        functionName: "addEntryToCurrentLogbook",
+        args: [flightIPFS],
+      });
+    } else {
+      await writeContractAsync({
+        address: contract,
+        abi: pilotLog[0].abi,
+        functionName: "addEntryWithValidator",
+        args: [flightIPFS, values.signedBy],
+      });
+    }
+    
 
     navigate(`/dashboard?flightIPFS=${flightIPFS}`);
   }
