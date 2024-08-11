@@ -105,9 +105,12 @@ export default function Dashboard() {
         {!isLicenseConfigured && <NewLicense />}
         {isLicenseConfigured && (
           <>
-            <div className="flex flex-col gap-4 justify-center items-center ">
+            <div className="flex gap-4 justify-center items-center ">
               <Link to="/new-flight">
                 <Button>Create new flight</Button>
+              </Link>
+              <Link to="/share-logbook">
+                <Button variant="outline">Share my logbook</Button>
               </Link>
             </div>
             <div className="mx-auto">
