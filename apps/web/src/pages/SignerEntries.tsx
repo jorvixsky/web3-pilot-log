@@ -18,6 +18,14 @@ export default function SignerEntries() {
         account: address,
     }).data as ValidationResponse[];
 
+    const closedResult = useReadContract({
+        address: contract,
+        abi: pilotLog[0].abi,
+        functionName: "getValidatedEntries",
+        args: [],
+        account: address,
+    }).data as ValidationResponse[];
+
     
     useEffect(() => {
         //console.log("result", result);
@@ -35,7 +43,7 @@ export default function SignerEntries() {
         <div className="flex flex-col gap-4 mx-auto justify-center items-center mt-8 mb-8">
             <h1 className="text-4xl font-bold">Signer entries</h1>
             <div className="flex gap-4 justify-center items-center ">
-                <EntriesToValidate data={result}/>
+                <EntriesToValidate data={result} closedData={closedResult}/>
             </div>
         </div>
     </div>);
