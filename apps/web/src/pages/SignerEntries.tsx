@@ -20,7 +20,7 @@ export default function SignerEntries() {
 
     
     useEffect(() => {
-        console.log("result", result);
+        //console.log("result", result);
     }, [result]);
 
     useEffect(() => {

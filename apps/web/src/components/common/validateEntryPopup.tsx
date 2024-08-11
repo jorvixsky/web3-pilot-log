@@ -12,7 +12,7 @@ export default function ValidateEntryPopup({contractData, data, onClosePopup} : 
     const header3Classname= "text-1l font-bold dark:text-white";
     const blockSeparationClass = "my-4";
 
-    //console.log("entry popup data", data)
+    console.log("entry popup data", data)
     function getTime(hour: number, min: number) : string {
         var res = "";
         if(hour < 10) res += "0";
