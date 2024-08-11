@@ -46,6 +46,36 @@
       },
       {
         "inputs": [],
+        "name": "getAllowedPilotProfiles",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "profileCid",
+                "type": "string"
+              },
+              {
+                "internalType": "enum PilotLog.UserType",
+                "name": "userType",
+                "type": "uint8"
+              },
+              {
+                "internalType": "address",
+                "name": "userAddr",
+                "type": "address"
+              }
+            ],
+            "internalType": "struct PilotLog.User[]",
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
         "name": "getEntriesToValidate",
         "outputs": [
           {
@@ -77,6 +107,36 @@
               }
             ],
             "internalType": "struct PilotLog.LogbookEntryValidation[]",
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getGrantedPermissionsToOthers",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "profileCid",
+                "type": "string"
+              },
+              {
+                "internalType": "enum PilotLog.UserType",
+                "name": "userType",
+                "type": "uint8"
+              },
+              {
+                "internalType": "address",
+                "name": "userAddr",
+                "type": "address"
+              }
+            ],
+            "internalType": "struct PilotLog.User[]",
             "name": "",
             "type": "tuple[]"
           }
@@ -239,6 +299,11 @@
                 "internalType": "enum PilotLog.UserType",
                 "name": "userType",
                 "type": "uint8"
+              },
+              {
+                "internalType": "address",
+                "name": "userAddr",
+                "type": "address"
               }
             ],
             "internalType": "struct PilotLog.User",
@@ -283,6 +348,11 @@
                 "internalType": "enum PilotLog.UserType",
                 "name": "userType",
                 "type": "uint8"
+              },
+              {
+                "internalType": "address",
+                "name": "userAddr",
+                "type": "address"
               }
             ],
             "internalType": "struct PilotLog.User",
