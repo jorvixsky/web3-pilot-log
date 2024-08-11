@@ -110,7 +110,7 @@ export default function NewEntity() {
             )}
           />
         </form>
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isLoading}>
           Create entity
         </Button>
       </Form>
