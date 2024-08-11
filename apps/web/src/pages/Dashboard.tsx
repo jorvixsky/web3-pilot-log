@@ -18,6 +18,7 @@ import useSelectContract from "@/hooks/useSelectContract";
 import { UserType } from "@/lib/enums";
 import NewEntity from "@/components/common/new-entity";
 import { Label } from "@/components/ui/label";
+import AllowedProfiles from "@/components/common/allowed-profiles";
 
 interface getUserProfileResponse {
   profileCid: string;
@@ -151,6 +152,9 @@ export default function Dashboard() {
               </div>
             </>
           )}
+        {isProfileConfigured && userType === UserType.ENTITY && (
+          <AllowedProfiles />
+        )}
       </div>
     </div>
   );
