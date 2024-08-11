@@ -60,15 +60,20 @@ export function DataTable<TData, TValue>({
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
               >
-                {row.getVisibleCells().map((cell) => 
+                {row.getVisibleCells().map((cell, columnIndex) => 
                 {
-                  //console.log("cell", cell);
                   if(cell.column.id == "seeMore"){
                     return <TableCell key={cell.id}>
                         <Button onClick={()=>onRowClicked(index)}>
                           view
                         </Button>
                       </TableCell>
+                  }
+                  if(cell.column.id == "date"){
+                    const dateStr =  cell.getValue() as string;
+                    const date = new Date(dateStr);
+                    const dateS = date.toLocaleString();
+                    return <td className="p4 align-middle [&:has([role=checkbox])]"><>{dateS}</></td>;
                   }
                   return (
                     <TableCell key={cell.id}>
