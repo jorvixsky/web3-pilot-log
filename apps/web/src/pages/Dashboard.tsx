@@ -104,15 +104,17 @@ export default function Dashboard() {
         <h1 className="text-4xl font-bold">Dashboard</h1>
         {!isLicenseConfigured && <NewLicense />}
         {isLicenseConfigured && (
-          <div className="flex flex-col gap-4 justify-center items-center ">
-            <Link to="/new-flight">
-              <Button>Create new flight</Button>
-            </Link>
-          </div>
+          <>
+            <div className="flex flex-col gap-4 justify-center items-center ">
+              <Link to="/new-flight">
+                <Button>Create new flight</Button>
+              </Link>
+            </div>
+            <div className="mx-auto">
+              <FlightsTable data={decodedLogbook} />
+            </div>
+          </>
         )}
-        <div className="mx-auto">
-          <FlightsTable data={decodedLogbook} />
-        </div>
       </div>
     </div>
   );

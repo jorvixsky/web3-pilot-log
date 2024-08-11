@@ -22,6 +22,7 @@ export const licenseSchema = z.object({
     }),
   ratings: z.array(z.any()).optional(),
   aircraftTypeRatings: z.array(z.string()).optional(),
+  signer: z.boolean(),
 });
 
 export const flightSchema = z.object({

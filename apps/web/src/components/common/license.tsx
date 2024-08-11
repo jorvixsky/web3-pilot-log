@@ -11,6 +11,7 @@ import lighthouse from "@lighthouse-web3/sdk";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -99,7 +100,7 @@ export default function NewLicense() {
       abi: pilotLog[0].abi,
       address: pilotLog[0].address as `0x${string}`,
       functionName: "registerProfile",
-      args: [licenseIPFS, 0],
+      args: [licenseIPFS, values.signer ? 1 : 0],
     });
 
     setIsLoading(false);
@@ -244,6 +245,30 @@ export default function NewLicense() {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormLabel className="text-lg font-bold">Signer</FormLabel>
+            <FormField
+              control={licenseForm.control}
+              name="signer"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex gap-2 items-center">
+                    <FormLabel>Signer?</FormLabel>
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={() => field.onChange(!field.value)}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormDescription>
+                    If you check this box, you will be able to sign entries into
+                    other pilot's logbooks. Sign this if you are a FI, or any
+                    other individual that needs to sign other pilot's logbooks.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
