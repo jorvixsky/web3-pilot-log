@@ -12,6 +12,7 @@ export default function ValidateEntryPopup({contractData, data, onClosePopup} : 
     const header3Classname= "text-1l font-bold dark:text-white";
     const blockSeparationClass = "my-4";
 
+    //console.log("entry popup data", data)
     function getTime(hour: number, min: number) : string {
         var res = "";
         if(hour < 10) res += "0";
@@ -28,7 +29,7 @@ export default function ValidateEntryPopup({contractData, data, onClosePopup} : 
 
             <div className={"absolute w-[42rem] max-h-full over h-fit bg-white m-auto left-0 right-0 top-0 bottom-0 p-12 \
                             border rounded-xl"}>
-                <h1 className="text-4xl font-extrabold dark:text-white text-center mb-24">Flight details</h1>
+                <h1 className="text-4xl font-extrabold dark:text-white text-center mb-24">Signing flight details</h1>
                 <div id="date" className={blockSeparationClass}>
                     <h2 className={header2Classname}>Date</h2>
                     <p>{formatDate(data?.date)}</p>
