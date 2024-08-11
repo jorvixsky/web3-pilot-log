@@ -21,6 +21,12 @@ interface getUserProfileResponse {
   userType: number;
 }
 
+enum Role {
+  Pilot,
+  Signer,
+  Entity
+}
+
 export default function Dashboard() {
   const [isLicenseConfigured, setIsLicenseConfigured] = useState(true);
   const [currentLogbook, setCurrentLogbook] = useState<any[]>([]);
@@ -29,6 +35,7 @@ export default function Dashboard() {
   const contract = useSelectContract();
   const { isConnected, address } = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [role, setRole] = useState<Role|undefined>(undefined);
 
   const logbookCid = searchParams.get("flightIPFS");
 
@@ -66,6 +73,19 @@ export default function Dashboard() {
     getSchema();
   }, [currentLogbook]);
 
+  function contractUserTypeToRole(ut : number){
+    switch(ut){
+      case 0: return Role.Pilot;
+      case 1: return Role.Signer;
+      case 2: return Role.Entity;
+    }
+    return undefined;
+  }
+
+  function showBecomeASignerPopup(){
+    // TODO
+  }
+
   // TODO: Add error handling
 
   const result = useReadContract({
@@ -91,6 +111,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     setIsLicenseConfigured(result && result.profileCid ? true : false);
+    setRole(contractUserTypeToRole(result?.userType))
   }, [result]);
 
   useEffect(() => {
@@ -114,6 +135,15 @@ export default function Dashboard() {
               <Link to="/share-logbook">
                 <Button variant="outline">Share my logbook</Button>
               </Link>
+              {
+                role==Role.Signer ?
+                  <Link to="/signer-entries">
+                    <Button variant="outline">Signer's entries</Button>
+                  </Link>
+                : role == Role.Pilot ?
+                  <Button variant="outline" onClick={()=>showBecomeASignerPopup()}>Become a Signer</Button>
+                : <></>
+              }
             </div>
             <div className="mx-auto">
               <FlightsTable data={decodedLogbook} />
