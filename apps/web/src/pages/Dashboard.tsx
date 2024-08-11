@@ -18,6 +18,7 @@ import useSelectContract from "@/hooks/useSelectContract";
 import { UserType } from "@/lib/enums";
 import NewEntity from "@/components/common/new-entity";
 import { Label } from "@/components/ui/label";
+import BecomeSignerPopup from "@/components/common/becomeSignerPopup";
 import AllowedProfiles from "@/components/common/allowed-profiles";
 
 interface getUserProfileResponse {
@@ -91,10 +92,6 @@ export default function Dashboard() {
         return Role.Entity;
     }
     return undefined;
-  }
-
-  function showBecomeASignerPopup() {
-    // TODO
   }
 
   // TODO: Add error handling
@@ -175,12 +172,7 @@ export default function Dashboard() {
                     <Button variant="outline">Signer's entries</Button>
                   </Link>
                 ) : role == Role.Pilot ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => showBecomeASignerPopup()}
-                  >
-                    Become a Signer
-                  </Button>
+                  <BecomeSignerPopup />
                 ) : (
                   <></>
                 )}
