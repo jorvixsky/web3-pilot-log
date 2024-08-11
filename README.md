@@ -1,6 +1,13 @@
-# crypto-template
+# web3-pilot-log
 
 This is a turborepo template intended to be used to start new web3 projects, containing the following:
+
+## Deployments
+
+Our contracts have been deployed to Optimism Sepolia and Base Sepolia (testnet only as there are improvements to be made before entering production). Check the following Blockscout URLs to see the contracts:
+
+[Optimism Sepolia](https://optimism-sepolia.blockscout.com/address/0x11A9872861C940D880EF82475C233DA2Ff993DF8?tab=contract_code)
+[Base Sepolia](https://base-sepolia.blockscout.com/address/0xc3F0373877C5D20Dd48aAA7c782D0C8e14B3cFE2?tab=contract_code)
 
 ## Apps and Packages
 
