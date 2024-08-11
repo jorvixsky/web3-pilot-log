@@ -11,16 +11,20 @@ const columns: ColumnDef<any>[] = [
     header: "Departure",
   },
   {
+    accessorKey: "departure.time",
+    header: "Departure Time",
+  },
+  {
     accessorKey: "arrival.place",
     header: "Arrival",
   },
   {
-    accessorKey: "aircraft.model",
-    header: "Aircraft",
+    accessorKey: "arrival.time",
+    header: "Arrival Time",
   },
   {
-    accessorKey: "totalTimeOfFlight.hours",
-    header: "Total Time of Flight",
+    accessorKey: "aircraft.model",
+    header: "Aircraft",
   },
   {
     accessorKey: "numberOfLandings.day",
