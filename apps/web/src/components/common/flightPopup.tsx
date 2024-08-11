@@ -1,3 +1,5 @@
+import { formatDate } from "@/utils";
+
 interface FlightPopupProps {
     data: any,
     onClosePopup: ()=>void;
@@ -18,16 +20,11 @@ export default function FlightPopup({data, onClosePopup} : FlightPopupProps) {
         return res;
     }
 
-    function formatDate(dateStr: string): string {
-        const date = new Date(dateStr);
-        return date.toLocaleString();
-    }
-
     return (
         <div className={"fixed overflow-auto h-full w-full absolute t-0 l-0 size-max z-50 inset-0 " + ((data==undefined)?"hidden":"")} onClick={onClosePopup}> 
             <div className="h-full w-full bg-gray-500 t-0 l-0 opacity-80 blur "/>
 
-            <div className={"absolute w-[42rem]  h-fit bg-white m-auto left-0 right-0 top-0 bottom-0 p-12 \
+            <div className={"absolute w-[42rem] max-h-full over h-fit bg-white m-auto left-0 right-0 top-0 bottom-0 p-12 \
                             border rounded-xl"}>
                 <h1 className="text-4xl font-extrabold dark:text-white text-center mb-24">Flight details</h1>
                 <div id="date" className={blockSeparationClass}>

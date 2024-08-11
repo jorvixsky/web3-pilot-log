@@ -9,6 +9,10 @@ const columns: ColumnDef<any>[] = [
     header: "Date",
   },
   {
+    accessorKey: "departure.time",
+    header: "Time"
+  },
+  {
     accessorKey: "departure.place",
     header: "Departure",
   },
