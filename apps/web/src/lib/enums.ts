@@ -26,3 +26,9 @@ export enum Licenses {
   AircraftMechanic = "Aircraft Mechanic",
   Others = "Others",
 }
+
+export enum UserType {
+  PILOT = 0,
+  SIGNER = 1,
+  ENTITY = 2,
+}

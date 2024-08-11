@@ -15,14 +15,16 @@ import { flightsSchema } from "@/lib/eas";
 import { useEthersProvider } from "@/lib/ethers";
 import FlightsTable from "@/components/common/flights";
 import useSelectContract from "@/hooks/useSelectContract";
+import { UserType } from "@/lib/enums";
 
 interface getUserProfileResponse {
   profileCid: string;
-  userType: number;
+  userType: UserType;
 }
 
 export default function Dashboard() {
-  const [isLicenseConfigured, setIsLicenseConfigured] = useState(true);
+  const [isProfileConfigured, setIsProfileConfigured] = useState(true);
+  const [userType, setUserType] = useState<UserType | undefined>(undefined);
   const [currentLogbook, setCurrentLogbook] = useState<any[]>([]);
   const [decodedLogbook, setDecodedLogbook] = useState<any[]>([]);
   const provider = useEthersProvider();
@@ -90,7 +92,10 @@ export default function Dashboard() {
   }, [logbookData]);
 
   useEffect(() => {
-    setIsLicenseConfigured(result && result.profileCid ? true : false);
+    setIsProfileConfigured(result && result.profileCid ? true : false);
+    if (result) {
+      setUserType(result.userType);
+    }
   }, [result]);
 
   useEffect(() => {
@@ -104,8 +109,8 @@ export default function Dashboard() {
       <Header />
       <div className="flex flex-col gap-4 mx-auto justify-center items-center mt-8 mb-8">
         <h1 className="text-4xl font-bold">Dashboard</h1>
-        {!isLicenseConfigured && <NewLicense />}
-        {isLicenseConfigured && (
+        {!isProfileConfigured && <NewLicense />}
+        {isProfileConfigured && userType === UserType.PILOT && (
           <>
             <div className="flex gap-4 justify-center items-center ">
               <Link to="/new-flight">

@@ -4,6 +4,8 @@ export const licenseSchemaEncoder = new SchemaEncoder(
   "string name,string licenseNumber,string[] licenses,string[] ratings,string[] aircraftTypeRatings"
 );
 
+export const entitySchemaEncoder = new SchemaEncoder("string entityName");
+
 export const flightsSchemaEncoder = new SchemaEncoder(
   "string flightData,address signer"
 );
@@ -21,3 +23,6 @@ export const licenseSchema =
 
 export const flightsSchema =
   "0x729792a64d6486fa09c88d0cad3b76395f60ba1f8c1a634d4ed286805e0089ac";
+
+export const entitySchema =
+  "0x8b9de2d007deabec3aef68eab90d9eac8df16d0e9f2377250ef73e2d9b70c4f3";
