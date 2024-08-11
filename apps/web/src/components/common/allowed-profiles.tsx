@@ -57,7 +57,9 @@ export default function AllowedProfiles() {
             <TableRow key={profile.profileCid}>
               <TableCell>{profile.userAddr}</TableCell>
               <TableCell>
-                <Link to={`/license?cid=${profile.profileCid}`}>
+                <Link
+                  to={`/license?cid=${profile.profileCid}&pilotAddress=${profile.userAddr}`}
+                >
                   <Button className="self-center" variant="outline">
                     View
                   </Button>
