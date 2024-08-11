@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
+import { formatDate } from "@/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -60,7 +61,7 @@ export function DataTable<TData, TValue>({
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
               >
-                {row.getVisibleCells().map((cell, columnIndex) => 
+                {row.getVisibleCells().map((cell) => 
                 {
                   if(cell.column.id == "seeMore"){
                     return <TableCell key={cell.id}>
@@ -70,10 +71,8 @@ export function DataTable<TData, TValue>({
                       </TableCell>
                   }
                   if(cell.column.id == "date"){
-                    const dateStr =  cell.getValue() as string;
-                    const date = new Date(dateStr);
-                    const dateS = date.toLocaleString();
-                    return <td className="p4 align-middle [&:has([role=checkbox])]"><>{dateS}</></td>;
+                    const dateStr =  formatDate(cell.getValue() as string);
+                    return <td className="p4 align-middle [&:has([role=checkbox])]"><>{dateStr}</></td>;
                   }
                   return (
                     <TableCell key={cell.id}>
