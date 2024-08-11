@@ -116,6 +116,7 @@ export default function NewLicense() {
       licenses: [],
       ratings: [],
       aircraftTypeRatings: [],
+      signer: false,
     },
   });
 

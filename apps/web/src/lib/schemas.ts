@@ -70,3 +70,9 @@ export const flightSchema = z.object({
   selfSigned: z.boolean(),
   signedBy: z.string(), // To handle the case where the attestation should be signed by another pilot
 });
+
+export const entitySchema = z.object({
+  name: z.string().min(1, {
+    message: "The entity name can't be empty",
+  }),
+});

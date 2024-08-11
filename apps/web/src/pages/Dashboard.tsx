@@ -15,10 +15,14 @@ import { flightsSchema } from "@/lib/eas";
 import { useEthersProvider } from "@/lib/ethers";
 import FlightsTable from "@/components/common/flights";
 import useSelectContract from "@/hooks/useSelectContract";
+import { UserType } from "@/lib/enums";
+import NewEntity from "@/components/common/new-entity";
+import { Label } from "@/components/ui/label";
+import AllowedProfiles from "@/components/common/allowed-profiles";
 
 interface getUserProfileResponse {
   profileCid: string;
-  userType: number;
+  userType: UserType;
 }
 
 enum Role {
@@ -28,7 +32,11 @@ enum Role {
 }
 
 export default function Dashboard() {
-  const [isLicenseConfigured, setIsLicenseConfigured] = useState(true);
+  const [typeOfUserToConfigure, setTypeOfUserToConfigure] = useState<
+    UserType | undefined
+  >(undefined);
+  const [isProfileConfigured, setIsProfileConfigured] = useState(true);
+  const [userType, setUserType] = useState<UserType | undefined>(undefined);
   const [currentLogbook, setCurrentLogbook] = useState<any[]>([]);
   const [decodedLogbook, setDecodedLogbook] = useState<any[]>([]);
   const provider = useEthersProvider();
@@ -110,7 +118,10 @@ export default function Dashboard() {
   }, [logbookData]);
 
   useEffect(() => {
-    setIsLicenseConfigured(result && result.profileCid ? true : false);
+    setIsProfileConfigured(result && result.profileCid ? true : false);
+    if (result) {
+      setUserType(result.userType);
+    }
     setRole(contractUserTypeToRole(result?.userType))
   }, [result]);
 
@@ -125,16 +136,37 @@ export default function Dashboard() {
       <Header />
       <div className="flex flex-col gap-4 mx-auto justify-center items-center mt-8 mb-8">
         <h1 className="text-4xl font-bold">Dashboard</h1>
-        {!isLicenseConfigured && <NewLicense />}
-        {isLicenseConfigured && (
+        {!isProfileConfigured && !typeOfUserToConfigure && (
+          <div className="flex flex-col gap-4">
+            <Label>Which type of user do you want to configure?</Label>
+            <Button onClick={() => setTypeOfUserToConfigure(UserType.PILOT)}>
+              Pilot
+            </Button>
+            <Button onClick={() => setTypeOfUserToConfigure(UserType.ENTITY)}>
+              Entity
+            </Button>
+          </div>
+        )}
+        {!isProfileConfigured && typeOfUserToConfigure === UserType.ENTITY && (
           <>
-            <div className="flex gap-4 justify-center items-center ">
-              <Link to="/new-flight">
-                <Button>Create new flight</Button>
-              </Link>
-              <Link to="/share-logbook">
-                <Button variant="outline">Share my logbook</Button>
-              </Link>
+            <NewEntity />
+          </>
+        )}
+        {isProfileConfigured && typeOfUserToConfigure === UserType.PILOT && (
+          <>
+            <NewLicense />
+          </>
+        )}
+        {isProfileConfigured &&
+          (userType === UserType.PILOT || userType === UserType.SIGNER) && (
+            <>
+              <div className="flex gap-4 justify-center items-center ">
+                <Link to="/new-flight">
+                  <Button>Create new flight</Button>
+                </Link>
+                <Link to="/share-logbook">
+                  <Button variant="outline">Share my logbook</Button>
+                </Link>
               {
                 role==Role.Signer ?
                   <Link to="/signer-entries">
@@ -144,11 +176,14 @@ export default function Dashboard() {
                   <Button variant="outline" onClick={()=>showBecomeASignerPopup()}>Become a Signer</Button>
                 : <></>
               }
-            </div>
-            <div className="mx-auto">
-              <FlightsTable data={decodedLogbook} />
-            </div>
-          </>
+              </div>
+              <div className="mx-auto">
+                <FlightsTable data={decodedLogbook} />
+              </div>
+            </>
+          )}
+        {isProfileConfigured && userType === UserType.ENTITY && (
+          <AllowedProfiles />
         )}
       </div>
     </div>

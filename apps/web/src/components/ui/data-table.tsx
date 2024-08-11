@@ -25,7 +25,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
-  onRowClicked
+  onRowClicked,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -61,24 +61,32 @@ export function DataTable<TData, TValue>({
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
               >
-                {row.getVisibleCells().map((cell) => 
-                {
-                  if(cell.column.id == "seeMore"){
-                    return <TableCell key={cell.id}>
-                        <Button onClick={()=>onRowClicked(index)}>
+                {row.getVisibleCells().map((cell) => {
+                  if (cell.column.id == "seeMore") {
+                    return (
+                      <TableCell key={cell.id}>
+                        <Button onClick={() => onRowClicked(index)}>
                           view
                         </Button>
                       </TableCell>
+                    );
                   }
-                  if(cell.column.id == "date"){
-                    const dateStr =  formatDate(cell.getValue() as string);
-                    return <td className="p4 align-middle [&:has([role=checkbox])]"><>{dateStr}</></td>;
+                  if (cell.column.id == "date") {
+                    const dateStr = formatDate(cell.getValue() as string);
+                    return (
+                      <td className="p4 align-middle [&:has([role=checkbox])]">
+                        <>{dateStr}</>
+                      </td>
+                    );
                   }
                   return (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
-                  )
+                  );
                 })}
               </TableRow>
             ))

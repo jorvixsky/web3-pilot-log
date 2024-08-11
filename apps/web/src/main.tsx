@@ -12,6 +12,8 @@ import Dashboard from "./pages/Dashboard.tsx";
 import AuthenticateLighthouse from "./pages/AuthenticateLighthouse.tsx";
 import NewFlightPage from "./pages/NewFlight.tsx";
 import ShareLogbookPage from "./pages/ShareLogbook.tsx";
+import UserLogbookPage from "./pages/UserLogbook.tsx";
+import LicensePage from "./pages/LicensePage.tsx";
 import SignerEntries from "./pages/SignerEntries.tsx";
 
 const router = createHashRouter([
@@ -34,6 +36,14 @@ const router = createHashRouter([
   {
     path: "/share-logbook",
     element: <ShareLogbookPage />,
+  },
+  {
+    path: "/license",
+    element: <LicensePage />,
+  },
+  {
+    path: "/logbook",
+    element: <UserLogbookPage />,
   },
   {
     path: "/signer-entries",
