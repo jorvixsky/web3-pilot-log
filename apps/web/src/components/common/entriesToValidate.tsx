@@ -59,7 +59,7 @@ export default function EntriesToValidate(data: EntriesToValidateProps) {
   console.log(data)
   return (
     <div >
-      <DataTable columns={columns} data={data.data as any} onRowClicked={showEntryToValidate}/>
+      <DataTable columns={columns} data={data.data ?? []} onRowClicked={showEntryToValidate}/>
       <ValidateEntryPopup contractData={contractData} onClosePopup={() => closePopup()} data={currentEntry}/>
     </div>
   );
